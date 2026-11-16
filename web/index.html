@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>In Context 3D — Законодавча оцінка суспільної небезпечності (КК України 2001–2026)</title>
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --panel-bg: rgba(13, 20, 36, 0.88);
+      --panel-border: rgba(99, 145, 255, 0.25);
+      --accent: #38bdf8;
+      --accent-glow: #0284c7;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --sev-1: #22c55e;
+      --sev-2: #eab308;
+      --sev-3: #f97316;
+      --sev-4: #ef4444;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Header & Controls */
+    header {
+      height: 62px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand h1 span.badge {
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 600;
+    }
+    .brand p {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: nowrap;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.75);
+      padding: 5px 11px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 12.5px;
+    }
+    .control-group label {
+      color: var(--text-muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    select, input[type="text"], button {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-size: 12.5px;
+      outline: none;
+      transition: all 0.15s;
+    }
+    select:hover, input[type="text"]:focus, button:hover {
+      border-color: var(--accent);
+    }
+    button {
+      cursor: pointer;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #e0f2fe;
+    }
+    button:hover {
+      background: rgba(56, 189, 248, 0.3);
+    }
+    button.active {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    /* Main 3D Viewport Area */
+    #viewport-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+    #canvas3d {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Floating Section Strip & Legend */
+    .section-pills {
+      position: absolute;
+      top: 12px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      pointer-events: auto;
+      z-index: 10;
+    }
+    .sec-pill {
+      padding: 4px 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 6px;
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .sec-pill:hover, .sec-pill.hovered {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: var(--accent);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .sec-pill.locked {
+      background: var(--accent);
+      color: #090d16;
+      border-color: #fff;
+    }
+
+    /* Floating Info HUD (Top Left below pills) */
+    .hud-box {
+      position: absolute;
+      top: 52px;
+      left: 16px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 12px 15px;
+      max-width: 420px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hud-box h3 {
+      font-size: 13.5px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .hud-box p {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+    .legend-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* Hover Tooltip */
+    #tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(10, 15, 29, 0.95);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #f8fafc;
+      max-width: 340px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+      display: none;
+      z-index: 30;
+    }
+    #tooltip .tt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 4px;
+      gap: 10px;
+    }
+    #tooltip .tt-title {
+      font-size: 11.5px;
+      color: #e2e8f0;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    #tooltip .tt-sanc {
+      font-size: 11px;
+      color: #94a3b8;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+      padding-top: 5px;
+      line-height: 1.35;
+    }
+
+    /* Bottom Plane: Temporal Dynamics Drawer ("Під площиною") */
+    #bottom-dynamics {
+      height: 250px;
+      background: linear-gradient(180deg, rgba(11, 18, 34, 0.96) 0%, rgba(6, 10, 20, 0.99) 100%);
+      border-top: 2px solid var(--accent);
+      display: flex;
+      padding: 12px 20px;
+      gap: 20px;
+      z-index: 20;
+      flex-shrink: 0;
+      transition: height 0.25s ease;
+    }
+    .dyn-left {
+      width: 380px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid rgba(148, 163, 184, 0.2);
+      padding-right: 18px;
+      overflow-y: auto;
+    }
+    .dyn-left h2 {
+      font-size: 15px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dyn-left .norm-title {
+      font-size: 12.5px;
+      color: var(--accent);
+      font-weight: 600;
+      margin: 4px 0 6px;
+    }
+    .dyn-left .norm-box {
+      font-size: 11.5px;
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 6px;
+      padding: 7px 9px;
+      line-height: 1.38;
+      margin-bottom: 6px;
+      max-height: 82px;
+      overflow-y: auto;
+    }
+    .dyn-stats {
+      display: flex;
+      gap: 10px;
+      font-size: 11.5px;
+    }
+    .stat-card {
+      background: rgba(30, 41, 59, 0.65);
+      border-radius: 6px;
+      padding: 5px 9px;
+      flex: 1;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+    .stat-card span {
+      display: block;
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+    .stat-card strong {
+      font-size: 13.5px;
+      color: #f8fafc;
+    }
+
+    .dyn-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    #timeline-svg-wrap {
+      flex: 1;
+      width: 100%;
+      position: relative;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    svg#timeline-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>
+        In Context 3D: Особлива частина КК України
+        <span class="badge">2001 – 2026</span>
+      </h1>
+      <p>Візуалізація індексів контекстної законодавчої оцінки суспільної небезпечності (I<sub>КЗОСН</sub>)</p>
+    </div>
+
+    <div class="controls-bar">
+      <div class="control-group">
+        <label for="edition-select">Редакція КК:</label>
+        <select id="edition-select"></select>
+        <button id="play-btn" title="Відтворити еволюцію КК з 2001 по 2026 рік">▶ Динаміка 2001→2026</button>
+      </div>
+
+      <div class="control-group">
+        <label for="surface-mode">Форма 3D-візуалізації:</label>
+        <select id="surface-mode">
+          <option value="ribbon">Стрічковий 3D-рельєф розділів (поверхня)</option>
+          <option value="matrix">Матрична 3D-поверхня (Статті × Частини)</option>
+          <option value="bars_seq">3D-стовпчики (послідовно в глибину розділу)</option>
+          <option value="bars_matrix">3D-стовпчики (Статті × Частини рядами)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="search-input">Пошук статті:</label>
+        <input type="text" id="search-input" placeholder="напр. 115, 185, 368..." style="width: 125px;" />
+        <button id="reset-cam-btn">Скинути камеру</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="viewport-container">
+    <div class="section-pills" id="section-pills"></div>
+
+    <div class="hud-box" id="hud-box">
+      <h3 id="hud-sec-title">Усі розділи Особливої частини КК (I – XX)</h3>
+      <p id="hud-sec-desc">
+        Наведіть курсор на будь-який розділ 3D-поверхні — він підсвітиться, а решта стануть прозорими (тільки контури). Натисніть на точку частини статті, щоб відкрити часову динаміку КЗОСН під площиною.
+      </p>
+      <div class="legend-row">
+        <div class="legend-item"><span class="dot" style="background: var(--sev-4)"></span> Особливо тяжкі (AS=4)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--sev-3)"></span> Тяжкі (AS=3)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--sev-2)"></span> Нетяжкі / середньої тяжкості (AS=2)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--sev-1)"></span> Проступки / невеликої тяжкості (AS=1)</div>
+      </div>
+    </div>
+
+    <div id="tooltip">
+      <div class="tt-header">
+        <span id="tt-label">ст. 115 ч. 1</span>
+        <span id="tt-index">I<sub>КЗОСН</sub> = 97.20</span>
+      </div>
+      <div class="tt-title" id="tt-title">Умисне вбивство</div>
+      <div class="tt-sanc" id="tt-sanc">карається позбавленням волі...</div>
+    </div>
+
+    <canvas id="canvas3d"></canvas>
+  </div>
+
+  <!-- Bottom panel ("Під площиною"): Temporal dynamics of selected article part -->
+  <section id="bottom-dynamics">
+    <div class="dyn-left">
+      <div>
+        <h2>
+          <span id="dyn-norm-label">ст. 115 ч. 1</span>
+          <span id="dyn-norm-sec" style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Розділ II</span>
+        </h2>
+        <div class="norm-title" id="dyn-norm-title">Умисне вбивство</div>
+        <div class="norm-box" id="dyn-norm-sanc">Натисніть на будь-яку вершину 3D-поверхні для перегляду санкції та динаміки КЗОСН за 2001–2026 рр.</div>
+        <div class="norm-box" id="dyn-norm-disp" style="color: #94a3b8; font-size: 11px;"></div>
+      </div>
+      <div class="dyn-stats">
+        <div class="stat-card">
+          <span>Індекс I<sub>КЗОСН</sub></span>
+          <strong id="dyn-stat-idx">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Місце в рейтингу (N<sub>i</sub> / N<sub>max</sub>)</span>
+          <strong id="dyn-stat-rank">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Діапазон за 2001–2026</span>
+          <strong id="dyn-stat-delta">—</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="dyn-right">
+      <div class="chart-header">
+        <span><strong>Часова динаміка Індексу КЗОСН обраної норми (2001 – 2026 рр.)</strong></span>
+        <span>
+          <span style="color:#38bdf8">● Контекстна зміна індексу</span> &nbsp;|&nbsp;
+          <span style="color:#f43f5e">◆ Пряма зміна санкції статті законом</span>
+        </span>
+      </div>
+      <div id="timeline-svg-wrap">
+        <svg id="timeline-svg" viewBox="0 0 900 185" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- Load Data Bundle and Three.js -->
+  <script src="data.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    (function () {
+      const DATA = window.KZOCN_DATA;
+      if (!DATA) {
+        alert("Помилка завантаження data.js!");
+        return;
+      }
+
+      // State
+      let currentEdition = "current";
+      let surfaceMode = "ribbon"; // 'ribbon' | 'matrix' | 'bars_seq' | 'bars_matrix'
+      let hoveredSection = null;
+      let lockedSection = null;
+      let hoveredArticle = null;
+      let selectedNormKey = "115|1";
+      let playTimer = null;
+
+      // DOM elements
+      const editionSelect = document.getElementById("edition-select");
+      const surfaceModeSelect = document.getElementById("surface-mode");
+      const playBtn = document.getElementById("play-btn");
+      const searchInput = document.getElementById("search-input");
+      const resetCamBtn = document.getElementById("reset-cam-btn");
+      const pillsContainer = document.getElementById("section-pills");
+      const hudSecTitle = document.getElementById("hud-sec-title");
+      const hudSecDesc = document.getElementById("hud-sec-desc");
+      const tooltip = document.getElementById("tooltip");
+
+      // Populate Edition Selector
+      DATA.editions.forEach((ed) => {
+        const opt = document.createElement("option");
+        opt.value = ed.edition_id;
+        opt.textContent = `${ed.edition_id === "2001_09_01" ? "01.09.2001 (Перша)" : ed.edition_id === "current" ? "2026 (Актуальна)" : ed.edition_id + " (31.12." + ed.edition_id + ")"} — ${ed.total_parts} норм (Nmax=${ed.unique_sanctions_n_max})`;
+        if (ed.edition_id === currentEdition) opt.selected = true;
+        editionSelect.appendChild(opt);
+      });
+
+      // Populate Section Pills (I..XX)
+      const secTitleMap = {};
+      const secIndexMap = {};
+      DATA.sections.forEach((s, i) => {
+        secTitleMap[s.id] = s.title;
+        secIndexMap[s.id] = i;
+        const pill = document.createElement("div");
+        pill.className = "sec-pill";
+        pill.dataset.sec = s.id;
+        pill.textContent = `Розділ ${s.id}`;
+        pill.title = s.title;
+        pill.addEventListener("mouseenter", () => {
+          if (!lockedSection) setHighlightedSection(s.id);
+        });
+        pill.addEventListener("mouseleave", () => {
+          if (!lockedSection) setHighlightedSection(null);
+        });
+        pill.addEventListener("click", () => {
+          if (lockedSection === s.id) {
+            lockedSection = null;
+            setHighlightedSection(null);
+          } else {
+            lockedSection = s.id;
+            setHighlightedSection(s.id);
+          }
+          updatePillsUI();
+        });
+        pillsContainer.appendChild(pill);
+      });
+
+      function updatePillsUI() {
+        document.querySelectorAll(".sec-pill").forEach((el) => {
+          const sec = el.dataset.sec;
+          el.classList.toggle("locked", lockedSection === sec);
+          el.classList.toggle("hovered", hoveredSection === sec && lockedSection !== sec);
+        });
+      }
+
+      // Color helper by Severity (AS) and KZOSN index
+      function getSeverityColor(sev, kzosn) {
+        const t = Math.max(0, Math.min(1, kzosn / 100));
+        if (sev === 4) return new THREE.Color().setHSL(0.98 - t * 0.03, 0.9, 0.52);
+        if (sev === 3) return new THREE.Color().setHSL(0.07, 0.92, 0.52);
+        if (sev === 2) return new THREE.Color().setHSL(0.14, 0.90, 0.50);
+        return new THREE.Color().setHSL(0.38, 0.80, 0.46);
+      }
+
+      function getSeverityHex(sev) {
+        if (sev === 4) return "#ef4444";
+        if (sev === 3) return "#f97316";
+        if (sev === 2) return "#eab308";
+        return "#22c55e";
+      }
+
+      // Initialize Three.js Scene
+      const canvas = document.getElementById("canvas3d");
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x070b14);
+      scene.fog = new THREE.FogExp2(0x070b14, 0.0012);
+
+      const camera = new THREE.PerspectiveCamera(45, 1, 1, 3000);
+      camera.position.set(0, 125, 290);
+
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 20, -60);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.maxDistance = 900;
+      controls.minDistance = 30;
+      controls.update();
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.68);
+      scene.add(ambientLight);
+
+      const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.85);
+      dirLight1.position.set(150, 300, 200);
+      scene.add(dirLight1);
+
+      const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.45);
+      dirLight2.position.set(-180, -120, -150);
+      scene.add(dirLight2);
+
+      // Base reference plane (Y = 0)
+      const gridHelper = new THREE.GridHelper(640, 40, 0x1e3a8a, 0x0f172a);
+      gridHelper.position.set(0, -0.2, -90);
+      scene.add(gridHelper);
+
+      // Groups
+      const sectionsRoot = new THREE.Group();
+      scene.add(sectionsRoot);
+
+      const subPlaneRoot = new THREE.Group(); // Under-plane (Y < 0) 3D temporal dynamics projection
+      scene.add(subPlaneRoot);
+
+      // Data structures for raycasting and section highlighting
+      let sectionObjects = {}; // secId -> { surfaceMesh, wireMesh, nodesMesh, labelSprite, items, count, avgIdx }
+      let interactiveNodes = []; // Meshes for raycasting parts
+      let selectedMarkerMesh = null;
+
+      // Layout constants
+      // X-axis: 20 sections with wide gaps between them
+      const SEC_SPACING_X = 24.0;      // Generous horizontal spacing between sections
+      const SEC_SURFACE_WIDTH = 11.5;  // Width of each section's 3D surface strip (leaving 12.5 units of clean gap!)
+      const HEIGHT_SCALE = 0.95;       // 0..100 KZOSN -> 0..95 Y units
+      const DEPTH_STEP_Z = 2.4;        // Step into depth (-Z) for parts/articles in sequence
+
+      // Helper to create text sprite in 3D space
+      function makeTextSprite(text, opts = {}) {
+        const fontSize = opts.fontSize || 34;
+        const fg = opts.color || "#e0f2fe";
+        const bg = opts.bg || "rgba(15, 23, 42, 0.85)";
+        const border = opts.border || "rgba(56, 189, 248, 0.5)";
+
+        const c = document.createElement("canvas");
+        const ctx = c.getContext("2d");
+        ctx.font = `bold ${fontSize}px Segoe UI, sans-serif`;
+        const metrics = ctx.measureText(text);
+        const padX = 22;
+        const padY = 14;
+        c.width = Math.ceil(metrics.width + padX * 2);
+        c.height = Math.ceil(fontSize + padY * 2);
+
+        ctx.fillStyle = bg;
+        ctx.strokeStyle = border;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(2, 2, c.width - 4, c.height - 4, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = fg;
+        ctx.font = `bold ${fontSize}px Segoe UI, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, c.width / 2, c.height / 2);
+
+        const tex = new THREE.CanvasTexture(c);
+        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+        const sprite = new THREE.Sprite(mat);
+        const scale = opts.scale || 0.12;
+        sprite.scale.set(c.width * scale, c.height * scale, 1);
+        return sprite;
+      }
+
+      // Build the 3D surface for the chosen edition
+      function buildSceneForEdition(edId) {
+        // Clear old meshes
+        while (sectionsRoot.children.length > 0) {
+          const obj = sectionsRoot.children[0];
+          sectionsRoot.remove(obj);
+        }
+        sectionObjects = {};
+        interactiveNodes = [];
+
+        const records = DATA.byEdition[edId] || [];
+        const bySec = {};
+        DATA.sections.forEach((s) => (bySec[s.id] = []));
+        records.forEach((r) => {
+          if (bySec[r[0]]) bySec[r[0]].push(r);
+        });
+
+        const totalSecs = DATA.sections.length;
+        const startX = -((totalSecs - 1) * SEC_SPACING_X) / 2;
+
+        // Shared sphere geometry for interactive article-part nodes
+        const nodeGeo = new THREE.SphereGeometry(0.95, 12, 12);
+
+        DATA.sections.forEach((secMeta, sIdx) => {
+          const secId = secMeta.id;
+          const items = bySec[secId];
+          const centerX = startX + sIdx * SEC_SPACING_X;
+
+          const secGroup = new THREE.Group();
+          secGroup.userData.secId = secId;
+          sectionsRoot.add(secGroup);
+
+          if (items.length === 0) return;
+
+          // Build 3D geometry for this section (Surface OR 3D Columns)
+          const isBarsMode = surfaceMode === "bars_seq" || surfaceMode === "bars_matrix";
+          let surfaceMesh = null;
+          let wireMesh = null;
+          const nodesGroup = new THREE.Group();
+          const barsWireGroup = new THREE.Group();
+          secGroup.add(nodesGroup);
+          secGroup.add(barsWireGroup);
+
+          if (!isBarsMode) {
+            let surfaceGeo;
+            const nodePositions = [];
+
+            if (surfaceMode === "ribbon") {
+              // Mode 1: Sequential 3D Surface Ribbon
+              const N = items.length;
+              const cols = 5;
+              const positions = [];
+              const colors = [];
+              const indices = [];
+
+              const halfW = SEC_SURFACE_WIDTH / 2;
+              const xOffsets = [-halfW, -halfW * 0.85, 0, halfW * 0.85, halfW];
+
+              for (let i = 0; i < N; i++) {
+                const item = items[i];
+                const kzosn = item[5];
+                const sev = item[8];
+                const z = -i * DEPTH_STEP_Z;
+                const yTop = Math.max(0.8, kzosn * HEIGHT_SCALE);
+                const colTop = getSeverityColor(sev, kzosn);
+                const colBase = colTop.clone().multiplyScalar(0.28);
+
+                nodePositions.push({ x: centerX, y: yTop + 0.4, z, item });
+
+                for (let c = 0; c < cols; c++) {
+                  const vx = centerX + xOffsets[c];
+                  let vy = 0;
+                  let vcol = colBase;
+                  if (c === 1 || c === 3) {
+                    vy = yTop * 0.94;
+                    vcol = colTop.clone().multiplyScalar(0.88);
+                  } else if (c === 2) {
+                    vy = yTop;
+                    vcol = colTop;
+                  }
+                  positions.push(vx, vy, z);
+                  colors.push(vcol.r, vcol.g, vcol.b);
+                }
+
+                if (i < N - 1) {
+                  const rowA = i * cols;
+                  const rowB = (i + 1) * cols;
+                  for (let c = 0; c < cols - 1; c++) {
+                    const a = rowA + c;
+                    const b = rowA + c + 1;
+                    const d = rowB + c;
+                    const e = rowB + c + 1;
+                    indices.push(a, d, b);
+                    indices.push(b, d, e);
+                  }
+                }
+              }
+
+              surfaceGeo = new THREE.BufferGeometry();
+              surfaceGeo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+              surfaceGeo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+              surfaceGeo.setIndex(indices);
+              surfaceGeo.computeVertexNormals();
+            } else {
+              // Mode 2: Matrix 3D Surface (Articles in depth Z × Parts 1..5 across section width X)
+              const byArt = [];
+              const artMap = {};
+              items.forEach((it) => {
+                const aStr = it[1];
+                if (!(aStr in artMap)) {
+                  artMap[aStr] = byArt.length;
+                  byArt.push({ art: aStr, parts: {} });
+                }
+                byArt[artMap[aStr]].parts[it[3]] = it;
+              });
+
+              const maxParts = 5;
+              const N = byArt.length;
+              const cols = maxParts + 2;
+              const positions = [];
+              const colors = [];
+              const indices = [];
+
+              for (let i = 0; i < N; i++) {
+                const rowObj = byArt[i];
+                const z = -i * (DEPTH_STEP_Z * 2.2);
+                const presentParts = Object.values(rowObj.parts);
+                const lastItem = presentParts[presentParts.length - 1];
+
+                for (let c = 0; c < cols; c++) {
+                  const frac = c / (cols - 1) - 0.5;
+                  const vx = centerX + frac * SEC_SURFACE_WIDTH;
+
+                  if (c === 0 || c === cols - 1) {
+                    const colB = getSeverityColor(lastItem[8], lastItem[5]).multiplyScalar(0.25);
+                    positions.push(vx, 0, z);
+                    colors.push(colB.r, colB.g, colB.b);
+                  } else {
+                    const pNum = c;
+                    const it = rowObj.parts[pNum] || lastItem;
+                    const vy = Math.max(0.8, it[5] * HEIGHT_SCALE);
+                    const colT = getSeverityColor(it[8], it[5]);
+                    positions.push(vx, vy, z);
+                    colors.push(colT.r, colT.g, colT.b);
+                    if (rowObj.parts[pNum]) {
+                      nodePositions.push({ x: vx, y: vy + 0.45, z, item: rowObj.parts[pNum] });
+                    }
+                  }
+                }
+
+                if (i < N - 1) {
+                  const rowA = i * cols;
+                  const rowB = (i + 1) * cols;
+                  for (let c = 0; c < cols - 1; c++) {
+                    const a = rowA + c;
+                    const b = rowA + c + 1;
+                    const d = rowB + c;
+                    const e = rowB + c + 1;
+                    indices.push(a, d, b);
+                    indices.push(b, d, e);
+                  }
+                }
+              }
+
+              surfaceGeo = new THREE.BufferGeometry();
+              surfaceGeo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+              surfaceGeo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+              surfaceGeo.setIndex(indices);
+              surfaceGeo.computeVertexNormals();
+            }
+
+            // 1. Solid 3D Surface Mesh
+            const surfaceMat = new THREE.MeshStandardMaterial({
+              vertexColors: true,
+              roughness: 0.35,
+              metalness: 0.15,
+              side: THREE.DoubleSide,
+              transparent: true,
+              opacity: 0.92,
+            });
+            surfaceMesh = new THREE.Mesh(surfaceGeo, surfaceMat);
+            surfaceMesh.userData = { secId };
+            secGroup.add(surfaceMesh);
+
+            // 2. Wireframe Contour Mesh
+            const wireGeo = new THREE.WireframeGeometry(surfaceGeo);
+            const wireMat = new THREE.LineBasicMaterial({
+              color: 0x38bdf8,
+              transparent: true,
+              opacity: 0.32,
+            });
+            wireMesh = new THREE.LineSegments(wireGeo, wireMat);
+            wireMesh.userData = { secId };
+            secGroup.add(wireMesh);
+
+            // 3. Interactive Vertex Nodes for each Article Part
+            nodePositions.forEach((np) => {
+              const it = np.item;
+              const normKey = `${it[1]}|${it[3]}`;
+              const nodeMat = new THREE.MeshBasicMaterial({
+                color: getSeverityColor(it[8], it[5]),
+                transparent: true,
+                opacity: 0.95,
+              });
+              const m = new THREE.Mesh(nodeGeo, nodeMat);
+              m.position.set(np.x, np.y, np.z);
+              m.userData = {
+                secId,
+                articleStr: it[1],
+                normKey,
+                item: it,
+                isBar: false,
+                topY: np.y,
+              };
+              nodesGroup.add(m);
+              interactiveNodes.push(m);
+            });
+          } else {
+            // 3D COLUMNS / BARS MODES ('bars_seq' or 'bars_matrix')
+            const barSpecs = [];
+            if (surfaceMode === "bars_seq") {
+              // Each article part is a wide 3D column in sequential depth order
+              const barW = SEC_SURFACE_WIDTH * 0.72;
+              const barD = DEPTH_STEP_Z * 0.74;
+              items.forEach((it, idx) => {
+                const h = Math.max(0.8, it[5] * HEIGHT_SCALE);
+                const z = -idx * DEPTH_STEP_Z;
+                barSpecs.push({ x: centerX, z, w: barW, d: barD, h, item: it });
+              });
+            } else {
+              // 'bars_matrix': Articles go in depth (-Z), parts (ч.1..ч.5) stand side-by-side across X
+              const byArt = [];
+              const artMap = {};
+              items.forEach((it) => {
+                const aStr = it[1];
+                if (!(aStr in artMap)) {
+                  artMap[aStr] = byArt.length;
+                  byArt.push({ art: aStr, parts: [] });
+                }
+                byArt[artMap[aStr]].parts.push(it);
+              });
+
+              const maxCols = 5;
+              const slotW = SEC_SURFACE_WIDTH / maxCols;
+              const barW = slotW * 0.82;
+              const rowStepZ = DEPTH_STEP_Z * 2.1;
+              const barD = rowStepZ * 0.72;
+
+              byArt.forEach((rowObj, rIdx) => {
+                const z = -rIdx * rowStepZ;
+                rowObj.parts.forEach((it, pIdx) => {
+                  const colIdx = Math.min(maxCols - 1, (it[3] || pIdx + 1) - 1);
+                  const vx = centerX - SEC_SURFACE_WIDTH / 2 + (colIdx + 0.5) * slotW;
+                  const h = Math.max(0.8, it[5] * HEIGHT_SCALE);
+                  barSpecs.push({ x: vx, z, w: barW, d: barD, h, item: it });
+                });
+              });
+            }
+
+            // Unit box geometry shifted so Y=0 is base and Y=1 is top
+            const unitBoxGeo = new THREE.BoxGeometry(1, 1, 1);
+            unitBoxGeo.translate(0, 0.5, 0);
+            const unitEdgesGeo = new THREE.EdgesGeometry(unitBoxGeo);
+
+            barSpecs.forEach((bs) => {
+              const it = bs.item;
+              const normKey = `${it[1]}|${it[3]}`;
+              const col = getSeverityColor(it[8], it[5]);
+
+              const barMat = new THREE.MeshStandardMaterial({
+                color: col,
+                roughness: 0.32,
+                metalness: 0.15,
+                transparent: true,
+                opacity: 0.94,
+              });
+              const barMesh = new THREE.Mesh(unitBoxGeo, barMat);
+              barMesh.position.set(bs.x, 0, bs.z);
+              barMesh.scale.set(bs.w, bs.h, bs.d);
+              barMesh.userData = {
+                secId,
+                articleStr: it[1],
+                normKey,
+                item: it,
+                isBar: true,
+                baseScale: { x: bs.w, y: bs.h, z: bs.d },
+                topY: bs.h,
+              };
+              nodesGroup.add(barMesh);
+              interactiveNodes.push(barMesh);
+
+              const edgeMat = new THREE.LineBasicMaterial({
+                color: 0x38bdf8,
+                transparent: true,
+                opacity: 0.35,
+              });
+              const edgeLine = new THREE.LineSegments(unitEdgesGeo, edgeMat);
+              edgeLine.position.set(bs.x, 0, bs.z);
+              edgeLine.scale.set(bs.w, bs.h, bs.d);
+              edgeLine.userData = {
+                secId,
+                articleStr: it[1],
+                normKey,
+              };
+              barsWireGroup.add(edgeLine);
+            });
+
+            // Subtle base platform along the section corridor so hovering the corridor keeps the whole section highlighted
+            const minZ = Math.min(...barSpecs.map((b) => b.z)) - 2;
+            const lenZ = Math.abs(minZ) + 4;
+            const floorGeo = new THREE.PlaneGeometry(SEC_SURFACE_WIDTH * 1.08, lenZ);
+            floorGeo.rotateX(-Math.PI / 2);
+            const floorMat = new THREE.MeshBasicMaterial({
+              color: 0x1e293b,
+              transparent: true,
+              opacity: 0.18,
+              side: THREE.DoubleSide,
+              depthWrite: false,
+            });
+            surfaceMesh = new THREE.Mesh(floorGeo, floorMat);
+            surfaceMesh.position.set(centerX, 0.02, -lenZ / 2 + 2);
+            surfaceMesh.userData = { secId, isFloor: true };
+            secGroup.add(surfaceMesh);
+          }
+
+          // Section Front Header Sprite (Roman numeral I..XX)
+          const labelSprite = makeTextSprite(`Розділ ${secId}`, {
+            fontSize: 32,
+            scale: 0.085,
+          });
+          labelSprite.position.set(centerX, -6, 12);
+          secGroup.add(labelSprite);
+
+          const avgIdx = items.reduce((acc, r) => acc + r[5], 0) / items.length;
+          sectionObjects[secId] = {
+            secId,
+            group: secGroup,
+            surfaceMesh,
+            wireMesh,
+            nodesGroup,
+            barsWireGroup,
+            labelSprite,
+            items,
+            count: items.length,
+            avgIdx,
+          };
+        });
+
+        applySectionHighlightState();
+        updateSelectedNormVisuals();
+      }
+
+      // Highlighting logic: hovered/locked section is bright; all other 19 sections become transparent (wireframe contours only!)
+      function setHighlightedSection(secId) {
+        hoveredSection = secId;
+        updatePillsUI();
+        applySectionHighlightState();
+
+        const activeSec = lockedSection || hoveredSection;
+        if (activeSec && sectionObjects[activeSec]) {
+          const st = sectionObjects[activeSec];
+          hudSecTitle.textContent = secTitleMap[activeSec];
+          hudSecDesc.innerHTML = `У редакції <b>${currentEdition === "current" ? "2026" : currentEdition}</b>: частин статей — <b>${st.count}</b> | Середній I<sub>КЗОСН</sub> по розділу — <b>${st.avgIdx.toFixed(2)}</b>. ${lockedSection ? "(Розділ закріплено кліком)" : ""}`;
+        } else {
+          hudSecTitle.textContent = "Усі розділи Особливої частини КК (I – XX)";
+          hudSecDesc.textContent =
+            "Наведіть курсор на будь-який розділ — він підсвітиться, а решта стануть прозорими (тільки контури). При наведенні на стовпчик статті прозорими стають і решта статей цього розділу.";
+        }
+      }
+
+      function applySectionHighlightState() {
+        const focusSec = lockedSection || hoveredSection;
+        Object.values(sectionObjects).forEach((so) => {
+          if (!focusSec) {
+            // Default state: all sections visible
+            if (so.surfaceMesh) {
+              so.surfaceMesh.visible = true;
+              const isFl = so.surfaceMesh.userData.isFloor;
+              so.surfaceMesh.material.opacity = isFl ? 0.14 : 0.90;
+              so.surfaceMesh.material.depthWrite = !isFl;
+            }
+            if (so.wireMesh) {
+              so.wireMesh.material.color.setHex(0x38bdf8);
+              so.wireMesh.material.opacity = 0.25;
+            }
+            so.barsWireGroup.children.forEach((l) => {
+              l.material.color.setHex(0x38bdf8);
+              l.material.opacity = 0.30;
+            });
+            so.nodesGroup.children.forEach((m) => {
+              m.material.opacity = 0.95;
+              m.material.depthWrite = true;
+              if (!m.userData.isBar) m.scale.setScalar(1.0);
+            });
+          } else if (so.secId === focusSec) {
+            // Focused section: check if a specific article is hovered inside this section!
+            if (hoveredArticle) {
+              // Article drill-down inside the highlighted section:
+              // Only parts of hoveredArticle stay 100% opaque; all other articles in this section become transparent (contours only)
+              if (so.surfaceMesh) {
+                so.surfaceMesh.visible = true;
+                so.surfaceMesh.material.opacity = 0.08;
+                so.surfaceMesh.material.depthWrite = false;
+              }
+              if (so.wireMesh) {
+                so.wireMesh.material.color.setHex(0x475569);
+                so.wireMesh.material.opacity = 0.45;
+              }
+              so.barsWireGroup.children.forEach((l) => {
+                if (l.userData.articleStr === hoveredArticle) {
+                  l.material.color.setHex(0xffffff);
+                  l.material.opacity = 1.0;
+                } else {
+                  l.material.color.setHex(0x475569);
+                  l.material.opacity = 0.35;
+                }
+              });
+              so.nodesGroup.children.forEach((m) => {
+                if (m.userData.articleStr === hoveredArticle) {
+                  m.material.opacity = 1.0;
+                  m.material.depthWrite = true;
+                  if (!m.userData.isBar) m.scale.setScalar(1.65);
+                } else {
+                  m.material.opacity = 0.04;
+                  m.material.depthWrite = false;
+                  if (!m.userData.isBar) m.scale.setScalar(0.75);
+                }
+              });
+            } else {
+              // Entire focused section is opaque
+              if (so.surfaceMesh) {
+                so.surfaceMesh.visible = true;
+                const isFl = so.surfaceMesh.userData.isFloor;
+                so.surfaceMesh.material.opacity = isFl ? 0.25 : 1.0;
+                so.surfaceMesh.material.depthWrite = !isFl;
+              }
+              if (so.wireMesh) {
+                so.wireMesh.material.color.setHex(0x7dd3fc);
+                so.wireMesh.material.opacity = 0.75;
+              }
+              so.barsWireGroup.children.forEach((l) => {
+                l.material.color.setHex(0xe0f2fe);
+                l.material.opacity = 0.85;
+              });
+              so.nodesGroup.children.forEach((m) => {
+                m.material.opacity = 1.0;
+                m.material.depthWrite = true;
+                if (!m.userData.isBar) m.scale.setScalar(1.3);
+              });
+            }
+          } else {
+            // Other 19 sections: transparent surface/bars (only wireframe contours visible!)
+            if (so.surfaceMesh) {
+              so.surfaceMesh.material.opacity = 0.02;
+              so.surfaceMesh.material.depthWrite = false;
+            }
+            if (so.wireMesh) {
+              so.wireMesh.material.color.setHex(0x334155);
+              so.wireMesh.material.opacity = 0.38;
+            }
+            so.barsWireGroup.children.forEach((l) => {
+              l.material.color.setHex(0x334155);
+              l.material.opacity = 0.42;
+            });
+            so.nodesGroup.children.forEach((m) => {
+              m.material.opacity = 0.03;
+              m.material.depthWrite = false;
+              if (!m.userData.isBar) m.scale.setScalar(0.7);
+            });
+          }
+        });
+      }
+
+      // Highlight selected norm in 3D (without the 3D rectangle) and render the 2D Bottom SVG Chart
+      function updateSelectedNormVisuals() {
+        while (subPlaneRoot.children.length > 0) {
+          subPlaneRoot.remove(subPlaneRoot.children[0]);
+        }
+
+        const normHist = DATA.history[selectedNormKey];
+        if (!normHist) return;
+
+        // Find the node or bar in current 3D scene if present
+        let activeNode = null;
+        interactiveNodes.forEach((m) => {
+          if (m.userData.normKey === selectedNormKey) {
+            activeNode = m;
+            if (!m.userData.isBar) {
+              m.scale.setScalar(2.1);
+            }
+          }
+        });
+
+        // Place a clean glowing marker beacon at the top of the selected vertex/column
+        if (activeNode) {
+          const topY = activeNode.userData.topY || activeNode.position.y;
+          const markerPos = new THREE.Vector3(activeNode.position.x, topY + 1.4, activeNode.position.z);
+
+          const ringGeo = new THREE.RingGeometry(1.4, 2.3, 24);
+          const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.position.copy(markerPos);
+          subPlaneRoot.add(ring);
+        }
+
+        // Update Bottom Panel Inspector & Interactive SVG Timeline
+        renderBottomTimeline(normHist);
+      }
+
+      function renderBottomTimeline(normHist) {
+        const edList = DATA.editions.map((e) => e.edition_id);
+        const series = normHist.series;
+        const curEntry = series[currentEdition] || Object.values(series)[Object.values(series).length - 1];
+
+        document.getElementById("dyn-norm-label").textContent = normHist.label;
+        document.getElementById("dyn-norm-sec").textContent = `Розділ ${normHist.section}`;
+        document.getElementById("dyn-norm-title").textContent = DATA.titles[normHist.title_id] || "";
+
+        if (curEntry) {
+          const [idxVal, rankNi, nMax, sev, sid, did] = curEntry;
+          document.getElementById("dyn-norm-sanc").innerHTML = `<b>Санкція (${currentEdition === "current" ? "2026" : currentEdition}):</b> ${DATA.sanctions[sid] || ""}`;
+          document.getElementById("dyn-norm-disp").innerHTML = `<b>Диспозиція:</b> ${DATA.dispositions[did] || ""}`;
+          document.getElementById("dyn-stat-idx").textContent = idxVal.toFixed(2);
+          document.getElementById("dyn-stat-idx").style.color = getSeverityHex(sev);
+          document.getElementById("dyn-stat-rank").textContent = `${rankNi} із ${nMax}`;
+        }
+
+        const allVals = Object.values(series).map((v) => v[0]);
+        const minV = Math.min(...allVals);
+        const maxV = Math.max(...allVals);
+        document.getElementById("dyn-stat-delta").textContent = `${minV.toFixed(1)} … ${maxV.toFixed(1)} (Δ ${(maxV - minV).toFixed(1)})`;
+
+        // Draw SVG Chart
+        const svg = document.getElementById("timeline-svg");
+        const W = 900;
+        const H = 185;
+        const padL = 44;
+        const padR = 24;
+        const padT = 22;
+        const padB = 34;
+        const plotW = W - padL - padR;
+        const plotH = H - padT - padB;
+
+        // Compute dynamic Y range for better visibility while keeping context
+        const yMin = Math.max(0, Math.floor((minV - 8) / 10) * 10);
+        const yMax = Math.min(100, Math.ceil((maxV + 8) / 10) * 10);
+        const spanY = Math.max(10, yMax - yMin);
+
+        let html = "";
+
+        // Horizontal grid lines
+        for (let step = 0; step <= 4; step++) {
+          const val = yMin + (spanY * step) / 4;
+          const y = padT + plotH - ((val - yMin) / spanY) * plotH;
+          html += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-dasharray="3,3" />`;
+          html += `<text x="${padL - 7}" y="${y + 4}" text-anchor="end" fill="#94a3b8" font-size="10.5">${val.toFixed(0)}</text>`;
+        }
+
+        // Collect points
+        const pts = [];
+        let prevSancId = null;
+        edList.forEach((edId, i) => {
+          const x = padL + (i / (edList.length - 1)) * plotW;
+          const shortEd = edId === "2001_09_01" ? "09.01" : edId === "current" ? "2026" : edId.slice(2);
+          // X-axis label
+          const isCur = edId === currentEdition;
+          html += `<text x="${x}" y="${H - 10}" text-anchor="middle" fill="${isCur ? "#38bdf8" : "#94a3b8"}" font-weight="${isCur ? "700" : "400"}" font-size="10.5">${shortEd}</text>`;
+
+          const entry = series[edId];
+          if (entry) {
+            const [idxVal, rankNi, nMax, sev, sid] = entry;
+            const y = padT + plotH - ((idxVal - yMin) / spanY) * plotH;
+            const sancChanged = prevSancId !== null && prevSancId !== sid;
+            prevSancId = sid;
+            pts.push({ edId, shortEd, x, y, idxVal, rankNi, nMax, sev, sancChanged });
+          } else {
+            prevSancId = null;
+          }
+        });
+
+        // Area under curve & Polyline
+        if (pts.length > 1) {
+          const pathD = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+          const areaD = `${pathD} L ${pts[pts.length - 1].x.toFixed(1)} ${padT + plotH} L ${pts[0].x.toFixed(1)} ${padT + plotH} Z`;
+          html += `<path d="${areaD}" fill="rgba(56, 189, 248, 0.12)" />`;
+          html += `<path d="${pathD}" fill="none" stroke="#38bdf8" stroke-width="2.5" />`;
+        }
+
+        // Points and labels
+        pts.forEach((p) => {
+          const isCur = p.edId === currentEdition;
+          if (isCur) {
+            html += `<line x1="${p.x}" y1="${padT}" x2="${p.x}" y2="${padT + plotH}" stroke="rgba(56,189,248,0.45)" stroke-width="1.5" />`;
+          }
+          const color = p.sancChanged ? "#f43f5e" : getSeverityHex(p.sev);
+          const r = isCur ? 6 : p.sancChanged ? 5.2 : 4;
+          html += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${color}" stroke="#0f172a" stroke-width="1.5" style="cursor:pointer" data-ed="${p.edId}">
+            <title>Редакція ${p.edId}: I_КЗОСН = ${p.idxVal.toFixed(2)} (місце ${p.rankNi}/${p.nMax})${p.sancChanged ? " — ЗМІНЕНО САНКЦІЮ" : ""}</title>
+          </circle>`;
+          if (isCur || p.sancChanged || p.edId === "2001_09_01" || p.edId === "current") {
+            html += `<text x="${p.x}" y="${p.y - 9}" text-anchor="middle" fill="#f8fafc" font-size="10" font-weight="600">${p.idxVal.toFixed(1)}</text>`;
+          }
+        });
+
+        svg.innerHTML = html;
+
+        // Allow clicking on a timeline point to switch edition
+        svg.querySelectorAll("circle[data-ed]").forEach((c) => {
+          c.addEventListener("click", () => {
+            currentEdition = c.dataset.ed;
+            editionSelect.value = currentEdition;
+            buildSceneForEdition(currentEdition);
+          });
+        });
+      }
+
+      // Raycasting for mouse hover (Section highlighting + Node tooltip) and click (Select norm)
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      let pointerDownPos = { x: 0, y: 0 };
+
+      canvas.addEventListener("pointermove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        // 1. Check intersection with article-part nodes/columns first
+        const nodeHits = raycaster.intersectObjects(interactiveNodes, false);
+        if (nodeHits.length > 0) {
+          const hitObj = nodeHits[0].object;
+          const { secId, articleStr, item } = hitObj.userData;
+          if (!lockedSection || lockedSection === secId) {
+            const secChanged = !lockedSection && hoveredSection !== secId;
+            const artChanged = hoveredArticle !== articleStr;
+            hoveredArticle = articleStr;
+            if (secChanged) {
+              setHighlightedSection(secId);
+            } else if (artChanged) {
+              applySectionHighlightState();
+            }
+          }
+          // Show tooltip
+          canvas.style.cursor = "pointer";
+          tooltip.style.display = "block";
+          tooltip.style.left = Math.min(window.innerWidth - 350, e.clientX + 16) + "px";
+          tooltip.style.top = Math.max(10, e.clientY - 20) + "px";
+          document.getElementById("tt-label").textContent = `${item[4]} (Розділ ${item[0]})`;
+          document.getElementById("tt-index").innerHTML = `I<sub>КЗОСН</sub> = ${item[5].toFixed(2)} (#${item[6]}/${item[7]})`;
+          document.getElementById("tt-title").textContent = DATA.titles[item[9]] || "";
+          document.getElementById("tt-sanc").textContent = DATA.sanctions[item[11]] || "";
+          return;
+        }
+
+        tooltip.style.display = "none";
+        if (hoveredArticle !== null) {
+          hoveredArticle = null;
+          applySectionHighlightState();
+        }
+
+        // 2. Check intersection with section 3D surfaces
+        const surfaceMeshes = Object.values(sectionObjects)
+          .map((s) => s.surfaceMesh)
+          .filter(Boolean);
+        const surfHits = raycaster.intersectObjects(surfaceMeshes, false);
+        if (surfHits.length > 0) {
+          const secId = surfHits[0].object.userData.secId;
+          canvas.style.cursor = "grab";
+          if (!lockedSection && hoveredSection !== secId) {
+            setHighlightedSection(secId);
+          }
+        } else {
+          canvas.style.cursor = "default";
+          if (!lockedSection && hoveredSection !== null) {
+            setHighlightedSection(null);
+          }
+        }
+      });
+
+      canvas.addEventListener("pointerdown", (e) => {
+        pointerDownPos = { x: e.clientX, y: e.clientY };
+      });
+
+      canvas.addEventListener("pointerup", (e) => {
+        const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+        if (dist > 5) return; // Ignore camera drag
+
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+
+        const nodeHits = raycaster.intersectObjects(interactiveNodes, false);
+        if (nodeHits.length > 0) {
+          const { normKey } = nodeHits[0].object.userData;
+          selectedNormKey = normKey;
+          updateSelectedNormVisuals();
+        }
+      });
+
+      // Controls Listeners
+      editionSelect.addEventListener("change", () => {
+        currentEdition = editionSelect.value;
+        buildSceneForEdition(currentEdition);
+      });
+
+      surfaceModeSelect.addEventListener("change", () => {
+        surfaceMode = surfaceModeSelect.value;
+        buildSceneForEdition(currentEdition);
+      });
+
+      playBtn.addEventListener("click", () => {
+        if (playTimer) {
+          clearInterval(playTimer);
+          playTimer = null;
+          playBtn.classList.remove("active");
+          playBtn.textContent = "▶ Динаміка 2001→2026";
+          return;
+        }
+        playBtn.classList.add("active");
+        playBtn.textContent = "⏸ Зупинити";
+        const edIds = DATA.editions.map((e) => e.edition_id);
+        let idx = edIds.indexOf(currentEdition);
+        if (idx === edIds.length - 1) idx = 0;
+
+        playTimer = setInterval(() => {
+          idx = (idx + 1) % edIds.length;
+          currentEdition = edIds[idx];
+          editionSelect.value = currentEdition;
+          buildSceneForEdition(currentEdition);
+          if (idx === edIds.length - 1) {
+            clearInterval(playTimer);
+            playTimer = null;
+            playBtn.classList.remove("active");
+            playBtn.textContent = "▶ Динаміка 2001→2026";
+          }
+        }, 700);
+      });
+
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const q = searchInput.value.trim().replace(/^ст\.?\s*/i, "");
+          if (!q) return;
+          const match = interactiveNodes.find(
+            (m) => m.userData.item[1] === q || m.userData.item[4].includes(q)
+          );
+          if (match) {
+            selectedNormKey = match.userData.normKey;
+            lockedSection = match.userData.secId;
+            setHighlightedSection(lockedSection);
+            updateSelectedNormVisuals();
+          }
+        }
+      });
+
+      resetCamBtn.addEventListener("click", () => {
+        lockedSection = null;
+        setHighlightedSection(null);
+        camera.position.set(0, 125, 290);
+        controls.target.set(0, 20, -60);
+        controls.update();
+      });
+
+      // Resize handler
+      function onResize() {
+        const container = document.getElementById("viewport-container");
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      }
+      window.addEventListener("resize", onResize);
+
+      // Initial render
+      onResize();
+      buildSceneForEdition(currentEdition);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      animate();
+    })();
+  </script>
+</body>
+</html>
+

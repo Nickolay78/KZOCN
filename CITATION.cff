@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "Якщо ви використовуєте цей набір даних або програмний код у наукових дослідженнях, будь ласка, посилайтеся на нього так:"
+title: "KZOCN: Контекстна законодавча оцінка суспільної небезпечності (КК України, 2001–2026)"
+authors:
+  - family-names: "Карчевський"
+    given-names: "Микола Віталійович"
+version: 1.0.0
+date-released: 2026-11-16
+url: "https://github.com/Nickolay78/KZOCN"
+references:
+  - type: book
+    authors:
+      - family-names: "Карчевський"
+        given-names: "Микола Віталійович"
+    title: "Кримінально-правова охорона інформаційної безпеки України : монографія"
+    year: 2012
+    publisher:
+      name: "РВВ ЛДУВС ім. Е. О. Дідоренка"
+      city: "Луганськ"
+    pages: 528
+    url: "https://karchevskiy.com/wp-content/uploads/2020/04/karchevskiy-m.pdf"
