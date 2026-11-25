@@ -773,6 +773,25 @@
 
       populateBaseNormSelect("");
       loadNormVector(baseNormKey);
+
+      if (window.KZOSN_SHELL) {
+        window.KZOSN_SHELL.onStateChange((st) => {
+          let changed = false;
+          if (st.ed && st.ed !== currentEdition) {
+            currentEdition = st.ed;
+            calcEditionSel.value = currentEdition;
+            populateBaseNormSelect(baseNormSearch.value);
+            changed = true;
+          }
+          if (st.norm && st.norm !== baseNormKey) {
+            baseNormKey = st.norm;
+            populateBaseNormSelect(baseNormSearch.value);
+            baseNormSelect.value = baseNormKey;
+            changed = true;
+          }
+          if (changed) loadNormVector(baseNormKey);
+        });
+      }
     })();
   </script>
 </body>

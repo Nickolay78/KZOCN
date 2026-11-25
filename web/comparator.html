@@ -949,6 +949,25 @@
       // Initialize
       populateNormSelect("");
       updateComparison();
+
+      if (window.KZOSN_SHELL) {
+        window.KZOSN_SHELL.onStateChange((st) => {
+          let changed = false;
+          if (st.ed && st.ed !== currentEdition) {
+            currentEdition = st.ed;
+            editionSelect.value = currentEdition;
+            populateNormSelect(normSearchInput.value);
+            changed = true;
+          }
+          if (st.norm && st.norm !== targetNormKey) {
+            targetNormKey = st.norm;
+            populateNormSelect(normSearchInput.value);
+            normSelect.value = targetNormKey;
+            changed = true;
+          }
+          if (changed) updateComparison();
+        });
+      }
     })();
   </script>
 </body>
