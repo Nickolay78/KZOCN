@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор КЗОСН (de lege ferenda) — Моделювання санкцій КК України</title>
+  <style>
+    :root {
+      --bg-page: #050811;
+      --panel-bg: #0c1322;
+      --border: rgba(148, 163, 184, 0.24);
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg-page);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 48px;
+    }
+
+    .toolbar {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+    .ctrl label {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    select, input[type="number"], input[type="text"], button {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      outline: none;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button.btn-load {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: #38bdf8;
+      color: #e0f2fe;
+    }
+    button.btn-reset {
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(239, 68, 68, 0.45);
+      color: #fecaca;
+    }
+
+    .container {
+      margin-top: 16px;
+      width: min(96vw, 1580px);
+      display: grid;
+      grid-template-columns: 620px 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    }
+    .card h2 {
+      font-size: 16px;
+      color: #38bdf8;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Sanction Form Grid */
+    .punish-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fde047;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin: 10px 0 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(253, 224, 71, 0.25);
+    }
+    .punish-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .p-row {
+      display: grid;
+      grid-template-columns: 1fr 115px 115px;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+    .p-row.active-row {
+      border-color: rgba(56, 189, 248, 0.55);
+      background: rgba(12, 74, 110, 0.28);
+    }
+    .p-row label {
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+    .p-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      justify-content: flex-end;
+    }
+    .p-input-wrap span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .p-input-wrap input[type="number"] {
+      width: 68px;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    /* Result KPIs Banner */
+    .result-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .res-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .res-box span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .res-box strong {
+      font-size: 22px;
+      color: #fff;
+    }
+    .res-box small {
+      display: block;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .table-wrap {
+      max-height: 510px;
+      overflow-y: auto;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 8px;
+    }
+    table.neighbors-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    table.neighbors-table th {
+      position: sticky;
+      top: 0;
+      background: #1e293b;
+      color: #cbd5e1;
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    table.neighbors-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      color: #e2e8f0;
+      vertical-align: top;
+    }
+    table.neighbors-table tr:hover td {
+      background: rgba(56, 189, 248, 0.1);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="ctrl">
+        <label for="calc-edition">Редакція КК (контекст для розрахунку):</label>
+        <select id="calc-edition"></select>
+      </div>
+
+      <div class="ctrl">
+        <label for="base-norm-search">Завантажити чинну норму за зразок:</label>
+        <input type="text" id="base-norm-search" placeholder="Пошук (185, 361...)" style="width:130px;" />
+        <select id="base-norm-select" style="max-width:290px;"></select>
+        <button class="btn-load" id="load-norm-btn">📥 Завантажити санкцію норми</button>
+      </div>
+
+      <button class="btn-reset" id="clear-sanc-btn">✖ Очистити всі поля (0)</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Left Card: Sanction Constructor (de lege ferenda) -->
+    <div class="card">
+      <h2>
+        <span>🧪 Конструктор санкції (de lege ferenda)</span>
+        <span id="base-norm-indicator" style="font-size:12px; color:#fde047; font-weight:600;">Зразок: ст. 185 ч. 4</span>
+      </h2>
+      <p style="font-size:11.5px; color:var(--muted); margin-bottom:8px;">
+        Змініть будь-який вид або межу основного чи додаткового покарання — система миттєво перерахує категорію за ст. 12 КК, місце санкції в ієрархії КК України та новий індекс <b>I<sub>КЗОСН</sub></b>.
+      </p>
+
+      <div class="punish-section-title">1. Основні види покарань (від найсуворішого до найм'якшого)</div>
+      <div class="punish-grid">
+        <div class="p-row" id="row-S">
+          <label>11. Довічне позбавлення волі (S)</label>
+          <div class="p-input-wrap" style="grid-column: span 2;">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+              <input type="checkbox" id="inp-S" /> Передбачено в санкції
+            </label>
+          </div>
+        </div>
+
+        <div class="p-row" id="row-TU">
+          <label>10. Позбавлення волі (років)</label>
+          <div class="p-input-wrap"><span>від (min)</span><input type="number" id="inp-U" min="0" max="15" step="0.5" value="5" /></div>
+          <div class="p-input-wrap"><span>до (max)</span><input type="number" id="inp-T" min="0" max="15" step="0.5" value="8" /></div>
+        </div>
+
+        <div class="p-row" id="row-VW">
+          <label>9. Дисциплінарний батальйон (років)</label>
+          <div class="p-input-wrap"><span>від</span><input type="number" id="inp-W" min="0" max="2" step="0.25" value="0" /></div>
+          <div class="p-input-wrap"><span>до</span><input type="number" id="inp-V" min="0" max="2" step="0.25" value="0" /></div>
+        </div>
+
+        <div class="p-row" id="row-XY">
+          <label>8. Обмеження волі (років)</label>
+          <div class="p-input-wrap"><span>від</span><input type="number" id="inp-Y" min="0" max="5" step="0.5" value="0" /></div>
+          <div class="p-input-wrap"><span>до</span><input type="number" id="inp-X" min="0" max="5" step="0.5" value="0" /></div>
+        </div>
+
+        <div class="p-row" id="row-ZAA">
+          <label>7. Арешт (місяців)</label>
+          <div class="p-input-wrap"><span>від</span><input type="number" id="inp-AA" min="0" max="6" step="1" value="0" /></div>
+          <div class="p-input-wrap"><span>до</span><input type="number" id="inp-Z" min="0" max="6" step="1" value="0" /></div>
+        </div>
+
+        <div class="p-row" id="row-PN">
+          <label>6. Пробаційний нагляд (років)</label>
+          <div class="p-input-wrap"><span>від</span><input type="number" id="inp-PN_MIN" min="0" max="5" step="0.5" value="0" /></div>
+          <div class="p-input-wrap"><span>до</span><input type="number" id="inp-PN_MAX" min="0" max="5" step="0.5" value="0" /></div>
+        </div>
+
+        <div class="p-row" id="row-ABAC">
+          <label>5. Службові обмеження військ. (років)</label>
+          <div class="p-input-wrap"><span>від</span><input type="number" id="inp-AC" min="0" max="2" step="0.25" value="0" /></div>
+          <div class="p-input-wrap"><span>до</span><input type="number" id="inp-AB" min="0" max="2" step="0.25" value="0" /></div>
+        </div>
+
+        <div class="p-row" id="row-ADAE">
+          <label>4. Виправні роботи (років)</label>
+          <div class="p-input-wrap"><span>від</span><input type="number" id="inp-AE" min="0" max="2" step="0.25" value="0" /></div>
+          <div class="p-input-wrap"><span>до</span><input type="number" id="inp-AD" min="0" max="2" step="0.25" value="0" /></div>
+        </div>
+
+        <div class="p-row" id="row-AFAG">
+          <label>3. Громадські роботи (годин)</label>
+          <div class="p-input-wrap"><span>від</span><input type="number" id="inp-AG" min="0" max="240" step="10" value="0" /></div>
+          <div class="p-input-wrap"><span>до</span><input type="number" id="inp-AF" min="0" max="240" step="10" value="0" /></div>
+        </div>
+
+        <div class="p-row" id="row-AHAI">
+          <label>2. Основне позбавлення права (років)</label>
+          <div class="p-input-wrap"><span>від</span><input type="number" id="inp-AI" min="0" max="5" step="0.5" value="0" /></div>
+          <div class="p-input-wrap"><span>до</span><input type="number" id="inp-AH" min="0" max="5" step="0.5" value="0" /></div>
+        </div>
+
+        <div class="p-row" id="row-AJAK">
+          <label>1. Основний штраф (у НМДГ)</label>
+          <div class="p-input-wrap"><span>від</span><input type="number" id="inp-AK" min="0" max="500000" step="100" value="0" /></div>
+          <div class="p-input-wrap"><span>до</span><input type="number" id="inp-AJ" min="0" max="500000" step="100" value="0" /></div>
+        </div>
+      </div>
+
+      <div class="punish-section-title">2. Додаткові покарання (порівнюються при рівності основних)</div>
+      <div class="punish-grid">
+        <div class="p-row" id="row-AL">
+          <label>Конфіскація майна (AL)</label>
+          <div class="p-input-wrap" style="grid-column: span 2;">
+            <select id="inp-AL" style="width:210px;">
+              <option value="0">0 — Відсутня</option>
+              <option value="1">1 — Факультативна (або без такої)</option>
+              <option value="2">2 — Обов'язкова конфіскація</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-row" id="row-AMANAO">
+          <label>Додаткове позбавлення права (років)</label>
+          <div class="p-input-wrap">
+            <select id="inp-AM" style="width:105px;">
+              <option value="0">Відсутнє</option>
+              <option value="1">Факультат.</option>
+              <option value="2">Обов'язк.</option>
+            </select>
+          </div>
+          <div class="p-input-wrap">
+            <span>до</span><input type="number" id="inp-AN" min="0" max="15" step="0.5" value="0" style="width:58px;" />
+          </div>
+        </div>
+
+        <div class="p-row" id="row-APAQAR">
+          <label>Додатковий штраф (НМДГ)</label>
+          <div class="p-input-wrap">
+            <select id="inp-AP" style="width:105px;">
+              <option value="0">Відсутній</option>
+              <option value="1">Факультат.</option>
+              <option value="2">Обов'язк.</option>
+            </select>
+          </div>
+          <div class="p-input-wrap">
+            <span>до</span><input type="number" id="inp-AQ" min="0" max="100000" step="100" value="0" style="width:65px;" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Card: Live Computed Context Result & Nearest Neighbors -->
+    <div class="card">
+      <h2>
+        <span>📊 Результат контекстної оцінки змодельованої санкції</span>
+        <span id="match-type-badge" style="font-size:12px; padding:3px 9px; border-radius:6px; background:rgba(34,197,94,0.2); color:#4ade80;">Існуюча конструкція в КК</span>
+      </h2>
+
+      <div class="result-banner">
+        <div class="res-box">
+          <span>Змодельований I<sub>КЗОСН</sub></span>
+          <strong id="res-kzosn" style="color:#38bdf8;">80.16</strong>
+          <small id="res-delta-base">Базова норма: 80.16 (Δ = 0.00)</small>
+        </div>
+
+        <div class="res-box">
+          <span>Місце в ієрархії КК (N<sub>i</sub> / N<sub>max</sub>)</span>
+          <strong id="res-rank">#99 / 494</strong>
+          <small id="res-exact-count">Точних аналогів у КК: 27 норм</small>
+        </div>
+
+        <div class="res-box">
+          <span>Тяжкість за ст. 12 КК (AS)</span>
+          <strong id="res-as" style="color:#f97316; font-size:17px;">3 — Тяжкий злочин</strong>
+          <small id="res-as-rule">Визначено за строком ПВ / штрафом</small>
+        </div>
+
+        <div class="res-box">
+          <span>Близьких норм у коридорі ±1%</span>
+          <strong id="res-corridor-cnt" style="color:#fde047;">48 норм</strong>
+          <small id="res-corridor-conv">Засуджено за ними: — осіб</small>
+        </div>
+      </div>
+
+      <h3 style="font-size:13.5px; color:#cbd5e1; margin-bottom:8px;">
+        Норми чинної редакції КК України, які опиняться на одному щаблі суворості (±1.5% від змодельованої санкції):
+      </h3>
+
+      <div class="table-wrap">
+        <table class="neighbors-table">
+          <thead>
+            <tr>
+              <th>Норма КК</th>
+              <th>Розділ</th>
+              <th>Назва статті</th>
+              <th>I<sub>КЗОСН</sub></th>
+              <th>Відхилення Δ</th>
+              <th>Засуджено (CONVIC)</th>
+              <th>Санкція чинної норми</th>
+            </tr>
+          </thead>
+          <tbody id="calc-neighbors-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app_shell.js"></script>
+  <script>
+    (function () {
+      const DATA = window.KZOCN_DATA;
+      if (!DATA) return;
+
+      const calcEditionSel = document.getElementById("calc-edition");
+      const baseNormSearch = document.getElementById("base-norm-search");
+      const baseNormSelect = document.getElementById("base-norm-select");
+      const loadNormBtn = document.getElementById("load-norm-btn");
+      const clearSancBtn = document.getElementById("clear-sanc-btn");
+
+      // Sync initial state from Global App Shell if available
+      const appState = window.KZOSN_SHELL ? window.KZOSN_SHELL.getState() : { ed: "2025", norm: "185|4" };
+      let currentEdition = appState.ed || "2025";
+      let baseNormKey = appState.norm || "185|4";
+      let baseNormKzosn = null;
+
+      // Populate Edition Select
+      DATA.editions.forEach((ed) => {
+        const opt = document.createElement("option");
+        opt.value = ed.edition_id;
+        opt.textContent = ed.edition_id === "current" ? "2026 (Актуальна)" : ed.edition_id;
+        if (ed.edition_id === currentEdition) opt.selected = true;
+        calcEditionSel.appendChild(opt);
+      });
+
+      function populateBaseNormSelect(q = "") {
+        const recs = DATA.byEdition[currentEdition] || [];
+        const query = q.trim().toLowerCase();
+        const filtered = recs.filter((r) => {
+          if (!query) return true;
+          return r[1].toLowerCase() === query || r[4].toLowerCase().includes(query) || (DATA.titles[r[9]] || "").toLowerCase().includes(query);
+        });
+        baseNormSelect.innerHTML = "";
+        filtered.forEach((r) => {
+          const k = `${r[1]}|${r[3]}`;
+          const opt = document.createElement("option");
+          opt.value = k;
+          opt.textContent = `${r[4]} (КЗОСН=${r[5].toFixed(1)}) — ${(DATA.titles[r[9]] || "").slice(0, 42)}`;
+          if (k === baseNormKey) opt.selected = true;
+          baseNormSelect.appendChild(opt);
+        });
+      }
+
+      // Compute Art. 12 CC severity (AS = 1..4) dynamically for the chosen edition
+      function computeArt12Severity(vec, edId) {
+        const S = vec.S, T = vec.T, AJ = vec.AJ;
+        const yr = edId === "current" ? 2026 : edId === "2001_09_01" ? 2001 : parseInt(edId, 10);
+        if (yr <= 2011) {
+          if (S > 0 || T > 10) return 4;
+          if (T > 5) return 3;
+          if (T > 2) return 2;
+          return 1;
+        } else if (yr <= 2019) {
+          if (S > 0 || T > 10 || (T === 0 && AJ > 25000)) return 4;
+          if (T > 5 || (T === 0 && AJ > 10000)) return 3;
+          if (T > 2 || (T === 0 && AJ > 3000)) return 2;
+          return 1;
+        } else {
+          if (S > 0 || T > 10 || (T === 0 && AJ > 25000)) return 4;
+          if (T > 5 || (T === 0 && AJ > 10000)) return 3;
+          if (T > 0 || (T === 0 && AJ > 3000)) return 2;
+          return 1;
+        }
+      }
+
+      // Build lexicographical key matching src/build_database.py Variant 1 (with inversion of alternatives)
+      function makeLexKey(vec, edId) {
+        const asVal = computeArt12Severity(vec, edId);
+        const mainSpecs = [
+          [11, "S", "S"],
+          [10, "T", "U"],
+          [9, "V", "W"],
+          [8, "X", "Y"],
+          [7, "Z", "AA"],
+          [6, "PN_MAX", "PN_MIN"],
+          [5, "AB", "AC"],
+          [4, "AD", "AE"],
+          [3, "AF", "AG"],
+          [2, "AH", "AI"],
+          [1, "AJ", "AK"],
+        ];
+        const present = [];
+        mainSpecs.forEach(([sev, cmax, cmin]) => {
+          const vmax = Number(vec[cmax] || 0);
+          const vmin = Number(vec[cmin] || 0);
+          if (vmax > 0 || vmin > 0) {
+            present.push([sev, vmax, vmin]);
+          }
+        });
+        while (present.length < 11) {
+          present.push([12, 0.0, 0.0]);
+        }
+        const addCols = ["AL", "AM", "AN", "AO", "AP", "AQ", "AR"];
+        const addVals = addCols.map((c) => Number(vec[c] || 0));
+        return { asVal, present, addVals };
+      }
+
+      function compareLexKeys(kA, kB) {
+        if (kA.asVal !== kB.asVal) return kB.asVal - kA.asVal; // descending (higher severity first)
+        for (let i = 0; i < 11; i++) {
+          for (let j = 0; j < 3; j++) {
+            if (kA.present[i][j] !== kB.present[i][j]) {
+              return kB.present[i][j] - kA.present[i][j];
+            }
+          }
+        }
+        for (let i = 0; i < kA.addVals.length; i++) {
+          if (kA.addVals[i] !== kB.addVals[i]) {
+            return kB.addVals[i] - kA.addVals[i];
+          }
+        }
+        return 0;
+      }
+
+      // Load a norm's vector into the form fields
+      function loadNormVector(normKey) {
+        const recs = DATA.byEdition[currentEdition] || [];
+        const rec = recs.find((r) => `${r[1]}|${r[3]}` === normKey);
+        if (!rec) return;
+
+        baseNormKey = normKey;
+        baseNormKzosn = rec[5];
+        document.getElementById("base-norm-indicator").textContent = `Зразок: ${rec[4]} (КЗОСН=${rec[5].toFixed(2)})`;
+
+        if (window.KZOSN_SHELL) {
+          window.KZOSN_SHELL.setState({ ed: currentEdition, norm: normKey, sec: rec[0] });
+        }
+
+        const vid = rec[16];
+        const arr = (DATA.vectors && DATA.vectors[vid]) || new Array(28).fill(0);
+        const cols = DATA.vecCols || [
+          "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "PN_MAX", "PN_MIN",
+          "AB", "AC", "AD", "AE", "AF", "AG", "AH", "AI", "AJ", "AK",
+          "AL", "AM", "AN", "AO", "AP", "AQ", "AR"
+        ];
+        const vObj = {};
+        cols.forEach((c, idx) => (vObj[c] = arr[idx] || 0));
+
+        document.getElementById("inp-S").checked = vObj.S > 0;
+        ["T", "U", "V", "W", "X", "Y", "Z", "AA", "PN_MAX", "PN_MIN", "AB", "AC", "AD", "AE", "AF", "AG", "AH", "AI", "AJ", "AK", "AN", "AQ"].forEach((c) => {
+          const el = document.getElementById(`inp-${c}`);
+          if (el) el.value = vObj[c] || 0;
+        });
+        document.getElementById("inp-AL").value = String(Math.round(vObj.AL || 0));
+        document.getElementById("inp-AM").value = String(Math.round(vObj.AM || 0));
+        document.getElementById("inp-AP").value = String(Math.round(vObj.AP || 0));
+
+        evaluateCustomSanction();
+      }
+
+      function readFormVector() {
+        const v = {
+          S: document.getElementById("inp-S").checked ? 1 : 0,
+        };
+        ["T", "U", "V", "W", "X", "Y", "Z", "AA", "PN_MAX", "PN_MIN", "AB", "AC", "AD", "AE", "AF", "AG", "AH", "AI", "AJ", "AK", "AN", "AQ"].forEach((c) => {
+          const el = document.getElementById(`inp-${c}`);
+          v[c] = el ? Math.max(0, Number(el.value || 0)) : 0;
+        });
+        v.AL = Number(document.getElementById("inp-AL").value || 0);
+        v.AM = Number(document.getElementById("inp-AM").value || 0);
+        v.AO = v.AM > 0 && v.AN > 0 ? 1 : 0;
+        v.AP = Number(document.getElementById("inp-AP").value || 0);
+        v.AR = 0;
+
+        // Highlight active rows in UI
+        const rowPairs = [
+          ["row-S", v.S > 0],
+          ["row-TU", v.T > 0 || v.U > 0],
+          ["row-VW", v.V > 0 || v.W > 0],
+          ["row-XY", v.X > 0 || v.Y > 0],
+          ["row-ZAA", v.Z > 0 || v.AA > 0],
+          ["row-PN", v.PN_MAX > 0 || v.PN_MIN > 0],
+          ["row-ABAC", v.AB > 0 || v.AC > 0],
+          ["row-ADAE", v.AD > 0 || v.AE > 0],
+          ["row-AFAG", v.AF > 0 || v.AG > 0],
+          ["row-AHAI", v.AH > 0 || v.AI > 0],
+          ["row-AJAK", v.AJ > 0 || v.AK > 0],
+          ["row-AL", v.AL > 0],
+          ["row-AMANAO", v.AM > 0],
+          ["row-APAQAR", v.AP > 0],
+        ];
+        rowPairs.forEach(([id, active]) => {
+          const rEl = document.getElementById(id);
+          if (rEl) rEl.classList.toggle("active-row", active);
+        });
+
+        return v;
+      }
+
+      function evaluateCustomSanction() {
+        const vec = readFormVector();
+        const customKey = makeLexKey(vec, currentEdition);
+        const recs = DATA.byEdition[currentEdition] || [];
+        const cols = DATA.vecCols || [];
+
+        // Extract unique rank keys from current edition
+        const rankToKey = {};
+        recs.forEach((r) => {
+          const rnk = r[6];
+          if (!(rnk in rankToKey)) {
+            const arr = (DATA.vectors && DATA.vectors[r[16]]) || [];
+            const vObj = {};
+            cols.forEach((c, idx) => (vObj[c] = arr[idx] || 0));
+            rankToKey[rnk] = makeLexKey(vObj, currentEdition);
+          }
+        });
+
+        const sortedRanks = Object.keys(rankToKey).map(Number).sort((a, b) => a - b);
+        const nMaxOrig = sortedRanks.length;
+
+        let exactRank = null;
+        let strictlyMoreSevereCount = 0;
+
+        sortedRanks.forEach((rnk) => {
+          const cmp = compareLexKeys(customKey, rankToKey[rnk]);
+          if (cmp === 0) {
+            exactRank = rnk;
+          } else if (cmp > 0) {
+            // rankToKey[rnk] is more severe than customKey
+            strictlyMoreSevereCount += 1;
+          }
+        });
+
+        let simRank, simNMax, simKzosn;
+        const badgeEl = document.getElementById("match-type-badge");
+        if (exactRank !== null) {
+          simRank = exactRank;
+          simNMax = nMaxOrig;
+          simKzosn = ((simNMax - simRank + 1) / simNMax) * 100.0;
+          badgeEl.textContent = `✓ Існуюча в КК конструкція (Ранг #${simRank})`;
+          badgeEl.style.background = "rgba(34, 197, 94, 0.2)";
+          badgeEl.style.color = "#4ade80";
+        } else {
+          simRank = strictlyMoreSevereCount + 1;
+          simNMax = nMaxOrig + 1;
+          simKzosn = ((simNMax - simRank + 1) / simNMax) * 100.0;
+          badgeEl.textContent = `★ Нова унікальна конструкція санкції (Новий ранг #${simRank} із ${simNMax})`;
+          badgeEl.style.background = "rgba(253, 224, 71, 0.2)";
+          badgeEl.style.color = "#fde047";
+        }
+
+        const sevNames = {
+          4: { t: "4 — Особливо тяжкий", c: "#ef4444" },
+          3: { t: "3 — Тяжкий злочин", c: "#f97316" },
+          2: { t: "2 — Нетяжкий злочин", c: "#eab308" },
+          1: { t: "1 — Проступок / нев. тяжк.", c: "#22c55e" },
+        };
+        const sInfo = sevNames[customKey.asVal];
+
+        document.getElementById("res-kzosn").textContent = simKzosn.toFixed(2);
+        document.getElementById("res-kzosn").style.color = sInfo.c;
+
+        if (baseNormKzosn !== null) {
+          const d = simKzosn - baseNormKzosn;
+          const sign = d > 0 ? `+${d.toFixed(2)}` : d.toFixed(2);
+          document.getElementById("res-delta-base").textContent = `Від базової (${baseNormKzosn.toFixed(2)}): Δ = ${sign}`;
+        }
+
+        const exactNorms = exactRank !== null ? recs.filter((r) => r[6] === exactRank).length : 0;
+        document.getElementById("res-rank").textContent = `#${simRank} / ${simNMax}`;
+        document.getElementById("res-exact-count").textContent = `Точних аналогів у КК: ${exactNorms} норм`;
+
+        document.getElementById("res-as").textContent = sInfo.t;
+        document.getElementById("res-as").style.color = sInfo.c;
+
+        // Find neighbors within ±1.5%
+        const neighbors = recs
+          .filter((r) => Math.abs(r[5] - simKzosn) <= 1.5)
+          .sort((a, b) => Math.abs(a[5] - simKzosn) - Math.abs(b[5] - simKzosn) || (b[12] || 0) - (a[12] || 0));
+
+        const within1Pct = recs.filter((r) => Math.abs(r[5] - simKzosn) <= 1.0);
+        const sumConv = within1Pct.reduce((acc, r) => acc + (r[12] || 0), 0);
+        document.getElementById("res-corridor-cnt").textContent = `${within1Pct.length} норм`;
+        document.getElementById("res-corridor-conv").textContent = `Засуджено за ними: ${sumConv.toLocaleString("uk-UA")} осіб`;
+
+        const tbody = document.getElementById("calc-neighbors-tbody");
+        tbody.innerHTML = neighbors
+          .map((r) => {
+            const diff = r[5] - simKzosn;
+            const dStr = Math.abs(diff) < 0.01 ? '<span style="color:#4ade80;font-weight:700;">= 0.00</span>' : diff > 0 ? `<span style="color:#fb923c">+${diff.toFixed(2)}%</span>` : `<span style="color:#7dd3fc">${diff.toFixed(2)}%</span>`;
+            const conv = r[12] !== null && r[12] !== undefined ? r[12].toLocaleString("uk-UA") : "—";
+            return `
+              <tr data-key="${r[1]}|${r[3]}">
+                <td style="white-space:nowrap;"><b>${r[4]}</b></td>
+                <td style="white-space:nowrap;">Розділ ${r[0]}</td>
+                <td style="font-weight:600;">${DATA.titles[r[9]] || ""}</td>
+                <td style="font-weight:800; color:${sevNames[r[8]].c};">${r[5].toFixed(2)}</td>
+                <td>${dStr}</td>
+                <td style="font-weight:700; color:#f0abfc;">${conv}</td>
+                <td style="font-size:11px; color:#cbd5e1;">${DATA.sanctions[r[11]] || ""}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        tbody.querySelectorAll("tr[data-key]").forEach((tr) => {
+          tr.addEventListener("click", () => {
+            baseNormSelect.value = tr.dataset.key;
+            loadNormVector(tr.dataset.key);
+          });
+        });
+      }
+
+      // Listeners
+      calcEditionSel.addEventListener("change", () => {
+        currentEdition = calcEditionSel.value;
+        populateBaseNormSelect(baseNormSearch.value);
+        loadNormVector(baseNormSelect.value || baseNormKey);
+      });
+
+      baseNormSearch.addEventListener("input", () => {
+        populateBaseNormSelect(baseNormSearch.value);
+      });
+
+      loadNormBtn.addEventListener("click", () => {
+        if (baseNormSelect.value) loadNormVector(baseNormSelect.value);
+      });
+
+      baseNormSelect.addEventListener("change", () => {
+        if (baseNormSelect.value) loadNormVector(baseNormSelect.value);
+      });
+
+      clearSancBtn.addEventListener("click", () => {
+        document.getElementById("inp-S").checked = false;
+        ["T", "U", "V", "W", "X", "Y", "Z", "AA", "PN_MAX", "PN_MIN", "AB", "AC", "AD", "AE", "AF", "AG", "AH", "AI", "AJ", "AK", "AN", "AQ"].forEach((c) => {
+          const el = document.getElementById(`inp-${c}`);
+          if (el) el.value = 0;
+        });
+        document.getElementById("inp-AL").value = "0";
+        document.getElementById("inp-AM").value = "0";
+        document.getElementById("inp-AP").value = "0";
+        evaluateCustomSanction();
+      });
+
+      document.querySelectorAll(".punish-grid input, .punish-grid select").forEach((el) => {
+        el.addEventListener("input", evaluateCustomSanction);
+        el.addEventListener("change", evaluateCustomSanction);
+      });
+
+      populateBaseNormSelect("");
+      loadNormVector(baseNormKey);
+    })();
+  </script>
+</body>
+</html>

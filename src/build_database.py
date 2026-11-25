@@ -7,6 +7,7 @@ from sanction_parser import parse_sanction, norm_text
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW_DIR = os.path.join(BASE_DIR, "data", "raw_html")
+CROSSWALK_DB_PATH = os.path.join(BASE_DIR, "data", "kzosn_crosswalk.sqlite")
 DB_PATH = os.path.join(BASE_DIR, "kzocn_kk_ukraine.db")
 EXCEL_PATH = os.path.join(BASE_DIR, "KZOCN_Database_2001_2026.xlsx")
 
@@ -39,6 +40,7 @@ def extract_edition_parts(html_path: str, edition_id: str, snapshot_date: str):
     cur_art = ""
     cur_art_title = ""
     cur_part = None
+    unnumbered_count = 0
     cur_disp = []
     in_note = False
     records = []
@@ -79,6 +81,7 @@ def extract_edition_parts(html_path: str, edition_id: str, snapshot_date: str):
             cur_art = m_art.group(1)
             cur_art_title = norm_text(m_art.group(2))
             cur_part = None
+            unnumbered_count = 0
             cur_disp = []
             in_note = False
             if re.search(
@@ -100,7 +103,11 @@ def extract_edition_parts(html_path: str, edition_id: str, snapshot_date: str):
 
         # Sanction paragraph
         if re.match(r"^[-–—\s]*кара(?:ється|ються)\b", t_clean, re.I):
-            part_num = cur_part if cur_part is not None else 1
+            if cur_part is not None:
+                part_num = cur_part
+            else:
+                unnumbered_count += 1
+                part_num = unnumbered_count
             disp_text = norm_text(" ".join(cur_disp))
             sanc_text = norm_text(re.sub(r"^[-–—\s]+", "", t_clean))
 
@@ -145,24 +152,8 @@ def make_lexicographic_key(rec: dict):
     """
     Variant 1 (from most severe to least severe with inversion of alternatives):
     1) Severity group AS (4 > 3 > 2 > 1)
-    2) Sequence of present main punishments [P_1, P_2, ...] from most severe to least severe:
-       - Type severity:
-           11: Довічне позбавлення волі (S)
-           10: Позбавлення волі (T, U)
-            9: Тримання в дисциплінарному батальйоні (V, W)
-            8: Обмеження волі (X, Y)
-            7: Арешт (Z, AA)
-            6: Пробаційний нагляд (PN_MAX, PN_MIN)
-            5: Службові обмеження для військовослужбовців (AB, AC)
-            4: Виправні роботи (AD, AE)
-            3: Громадські роботи (AF, AG)
-            2: Основне. Позбавлення права (AH, AI)
-            1: Основне. Штраф (AJ, AK)
-       - For P_1 (and any subsequent present alternatives): higher type > higher max > higher min.
-       - Absence of a milder alternative P_{k} (k >= 2) is MORE severe than presence of P_{k},
-         so padding uses (12, 0.0, 0.0) which sorts higher than any present alternative (1..10).
-    3) Additional punishments at the very end:
-       (AL, AM, AN, AO, AP, AQ, AR)
+    2) Sequence of present main punishments [P_1, P_2, ...] from most severe to least severe
+    3) Additional punishments at the very end: (AL, AM, AN, AO, AP, AQ, AR)
     """
     as_val = int(rec["AS"])
     main_specs = [
@@ -210,15 +201,87 @@ def compute_edition_kzosn(records: list):
     return records, n_max
 
 
+def load_convic_crosswalk():
+    """
+    Loads matched CONVIC counts per norm_id ('year:article:part') from data/kzosn_crosswalk.sqlite.
+    """
+    if not os.path.exists(CROSSWALK_DB_PATH):
+        print(f"Warning: {CROSSWALK_DB_PATH} not found, skipping CONVIC integration.")
+        return {}
+    uri = "file:" + CROSSWALK_DB_PATH.replace("\\", "/") + "?mode=ro"
+    conn = sqlite3.connect(uri, uri=True)
+    cur = conn.cursor()
+    rows = cur.execute("""
+        SELECT norm_id, value, value_status, match_status
+        FROM observations
+        WHERE norm_id IS NOT NULL
+    """).fetchall()
+    conn.close()
+
+    convic_map = {}
+    for norm_id, val, val_status, match_status in rows:
+        convic_map[norm_id] = {
+            "convic_count": int(val) if val is not None else None,
+            "convic_value_status": val_status,
+            "convic_match_status": match_status,
+        }
+    return convic_map
+
+
+def compute_edition_convic_index(records: list, edition_id: str, convic_map: dict):
+    """
+    Attaches CONVIC count and computes the Contextual Conviction Index (I_CONVIC):
+      I_i^{CONVIC} = ((M_max - M_i + 1) / M_max) * 100
+    where M_max is the number of unique positive CONVIC values in the edition,
+    and M_i (1..M_max) is the dense rank from largest CONVIC (M_i = 1 -> 100.0)
+    to smallest positive CONVIC (M_i = M_max -> 100 / M_max).
+    Norms with no convictions (None or 0) receive index_convic = 0.0.
+    """
+    has_stats = edition_id.isdigit() and 2013 <= int(edition_id) <= 2025
+    pos_values = set()
+
+    for r in records:
+        uid = f"{edition_id}:{r['article_str']}:{r['part_num']}"
+        info = convic_map.get(uid) if has_stats else None
+        val = info["convic_count"] if info else None
+        r["convic_count"] = val
+        r["convic_match_status"] = info["convic_match_status"] if info else None
+        if val is not None and val > 0:
+            pos_values.add(val)
+
+    sorted_pos = sorted(pos_values, reverse=True)
+    m_max = len(sorted_pos)
+    val_to_rank = {v: idx + 1 for idx, v in enumerate(sorted_pos)}
+
+    for r in records:
+        val = r["convic_count"]
+        if val is not None and val > 0 and m_max > 0:
+            m_i = val_to_rank[val]
+            idx_convic = ((m_max - m_i + 1) / m_max) * 100.0
+            r["convic_rank"] = m_i
+            r["convic_n_max"] = m_max
+            r["index_convic"] = round(idx_convic, 6)
+        else:
+            r["convic_rank"] = None
+            r["convic_n_max"] = m_max if has_stats else None
+            r["index_convic"] = 0.0
+
+    total_convic = sum(r["convic_count"] for r in records if r["convic_count"] is not None)
+    active_parts = sum(1 for r in records if (r["convic_count"] or 0) > 0)
+    return m_max, total_convic, active_parts
+
+
 def main():
     all_records = []
     edition_summaries = []
+    convic_map = load_convic_crosswalk()
 
-    print("Parsing and computing KZOSN indices across all 27 editions...")
+    print("Parsing and computing KZOSN & CONVIC indices across all 27 editions...")
     for ed_id, snap_date, desc in EDITIONS_META:
         html_path = os.path.join(RAW_DIR, f"kk_{ed_id}.html")
         recs = extract_edition_parts(html_path, ed_id, snap_date)
         recs, n_max = compute_edition_kzosn(recs)
+        convic_m_max, total_convic, active_convic_parts = compute_edition_convic_index(recs, ed_id, convic_map)
         all_records.extend(recs)
 
         avg_idx = sum(r["index_kzosn"] for r in recs) / len(recs) if recs else 0
@@ -234,10 +297,13 @@ def main():
             "sev_2_count": sev_counts[2],
             "sev_3_count": sev_counts[3],
             "sev_4_count": sev_counts[4],
+            "convic_unique_m_max": convic_m_max if convic_m_max > 0 else None,
+            "convic_active_parts": active_convic_parts if convic_m_max > 0 else None,
+            "convic_total_persons": total_convic if convic_m_max > 0 else None,
         })
         print(
             f"  [{ed_id:10s}] parts={len(recs):4d} | N_max={n_max:3d} | avg_KZOSN={avg_idx:6.2f} | "
-            f"Sev(1..4)={sev_counts[1]}/{sev_counts[2]}/{sev_counts[3]}/{sev_counts[4]}"
+            f"CONVIC_sum={total_convic:7d} (M_max={convic_m_max:3d})"
         )
 
     df_all = pd.DataFrame(all_records)
@@ -251,7 +317,6 @@ def main():
         values="index_kzosn",
         aggfunc="first",
     ).reset_index()
-    # Reorder columns
     meta_cols = ["section_roman", "article_code", "article_str", "part_num", "short_label"]
     df_pivot = df_pivot[meta_cols + [c for c in ed_order if c in df_pivot.columns]]
     df_pivot = df_pivot.sort_values(["article_code", "part_num"]).reset_index(drop=True)
@@ -287,4 +352,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

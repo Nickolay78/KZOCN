@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10 Децилів КЗОСН (3D та 2D): % Заборон КК (↑) vs % Засуджених (↓) за 2013–2025 рр.</title>
+  <style>
+    :root {
+      --bg-page: #050811;
+      --panel-bg: rgba(13, 20, 36, 0.90);
+      --border: rgba(148, 163, 184, 0.25);
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg-page);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    body.mode-2d {
+      height: auto;
+      min-height: 100vh;
+      overflow-y: auto;
+      align-items: center;
+      padding-bottom: 48px;
+    }
+
+    /* Top Site Navigation Tabs */
+    .top-nav {
+      width: 100%;
+      background: #090e1a;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 7px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      flex-shrink: 0;
+      z-index: 40;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .nav-tab {
+      text-decoration: none;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 7px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      transition: all 0.15s;
+    }
+    .nav-tab:hover {
+      border-color: #38bdf8;
+      color: #fff;
+    }
+    .nav-tab.active {
+      background: linear-gradient(135deg, #0284c7, #7c3aed);
+      color: #fff;
+      border-color: #7dd3fc;
+      box-shadow: 0 2px 12px rgba(56, 189, 248, 0.35);
+    }
+
+    /* Controls Toolbar */
+    .toolbar {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.94);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 9px;
+      flex-shrink: 0;
+      z-index: 40;
+      backdrop-filter: blur(10px);
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+    .ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(30, 41, 59, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 4px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+    .ctrl.highlight {
+      border-color: rgba(232, 121, 249, 0.5);
+      background: rgba(46, 16, 101, 0.38);
+    }
+    .ctrl label {
+      color: var(--muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    select, button {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+    }
+    select:hover, button:hover {
+      border-color: var(--accent);
+    }
+    button.btn-action {
+      background: rgba(56, 189, 248, 0.16);
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #e0f2fe;
+      font-weight: 600;
+    }
+    button.btn-action.active {
+      background: var(--accent);
+      color: #0f172a;
+    }
+    button.btn-primary {
+      background: linear-gradient(135deg, #e11d48, #7c3aed);
+      border-color: #f43f5e;
+      font-weight: 700;
+      padding: 6px 13px;
+      font-size: 12px;
+      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);
+    }
+
+    /* ============================================================
+       3D VIEWPORT AREA
+       ============================================================ */
+    #view3d-wrapper {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    #viewport3d {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    #canvas3d {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Floating Decile Pills (100-90 .. 10-0) */
+    .decile-pills {
+      position: absolute;
+      top: 10px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      z-index: 15;
+    }
+    .dec-pill {
+      padding: 4px 9px;
+      font-size: 11.5px;
+      font-weight: 700;
+      background: rgba(15, 23, 42, 0.86);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 6px;
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .dec-pill:hover, .dec-pill.hovered {
+      border-color: #38bdf8;
+      color: #fff;
+      background: rgba(56, 189, 248, 0.25);
+    }
+    .dec-pill.locked {
+      background: #38bdf8;
+      color: #090d16;
+      border-color: #fff;
+    }
+
+    /* Floating HUD Info Box in 3D */
+    .hud3d {
+      position: absolute;
+      top: 48px;
+      left: 14px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(99, 145, 255, 0.28);
+      border-radius: 10px;
+      padding: 11px 15px;
+      max-width: 520px;
+      pointer-events: none;
+      z-index: 15;
+    }
+    .hud3d h3 {
+      font-size: 13.5px;
+      color: #38bdf8;
+      margin-bottom: 4px;
+    }
+    .hud3d p {
+      font-size: 11.5px;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+    .hud-legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    /* Bottom Drawer in 3D Mode: Selected Decile × Year Details + 2013-2025 Decile Dynamics */
+    #bottom3d-drawer {
+      height: 245px;
+      background: linear-gradient(180deg, rgba(11, 18, 34, 0.96) 0%, rgba(6, 10, 20, 0.99) 100%);
+      border-top: 2px solid var(--accent);
+      display: flex;
+      padding: 10px 18px;
+      gap: 18px;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+    .b3d-left {
+      width: 470px;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(148, 163, 184, 0.2);
+      padding-right: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+    }
+    .b3d-left h2 {
+      font-size: 14.5px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .b3d-desc {
+      font-size: 11.5px;
+      color: #38bdf8;
+      font-weight: 600;
+      margin: 2px 0 6px;
+    }
+    .b3d-top-list {
+      font-size: 11px;
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 6px;
+      padding: 6px 9px;
+      line-height: 1.4;
+      max-height: 98px;
+      overflow-y: auto;
+      margin-bottom: 6px;
+    }
+    .b3d-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .stat-mini {
+      background: rgba(30, 41, 59, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 6px;
+      padding: 4px 7px;
+    }
+    .stat-mini span {
+      display: block;
+      font-size: 9.5px;
+      color: var(--muted);
+    }
+    .stat-mini strong {
+      font-size: 12px;
+      color: #fff;
+    }
+    .b3d-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .b3d-chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    #decile-timeline-wrap {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    svg#decile-timeline-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ============================================================
+       2D WORKSPACE AREA (Hidden when in 3D mode)
+       ============================================================ */
+    #view2d-wrapper {
+      display: none;
+      margin-top: 16px;
+      width: min(96vw, 1560px);
+      flex-direction: column;
+      gap: 18px;
+    }
+    .poster-wrap {
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      position: relative;
+    }
+    canvas#decile-canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: pointer;
+    }
+    .inspector-panel {
+      background: rgba(13, 20, 36, 0.95);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    .insp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .insp-header h2 {
+      font-size: 16.5px;
+      color: #38bdf8;
+    }
+    .insp-kpis {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+    .insp-kpi {
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      padding: 5px 10px;
+      border-radius: 7px;
+    }
+    .table-wrap {
+      max-height: 320px;
+      overflow-y: auto;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 8px;
+    }
+    table.norm-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    table.norm-table th {
+      position: sticky;
+      top: 0;
+      background: #1e293b;
+      color: #cbd5e1;
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    table.norm-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      color: #e2e8f0;
+    }
+
+    /* Floating Hover Tooltip (shared 3D & 2D) */
+    #hover-card {
+      position: fixed;
+      pointer-events: none;
+      background: rgba(8, 13, 26, 0.96);
+      border: 1px solid #38bdf8;
+      border-radius: 9px;
+      padding: 11px 14px;
+      font-size: 12px;
+      color: #f8fafc;
+      max-width: 390px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85);
+      display: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <div class="nav-tabs">
+      <a href="index.html" class="nav-tab">🌐 Вкладка 1: 3D-Модель усіх статей КК</a>
+      <a href="fb_post_2d.html" class="nav-tab">📊 Вкладка 2: 2D-Постер v1</a>
+      <a href="fb_post_v2.html" class="nav-tab">✨ Вкладка 3: 2D-Інфографіка v2 (Гребінець)</a>
+      <a href="deciles.html" class="nav-tab active">🏛 Вкладка 4: 10 Децилів КЗОСН (3D + 2D)</a>
+      <a href="comparator.html" class="nav-tab">⚖️ Вкладка 5: Компаратор близьких заборон (±1%, ±3%, ±5%)</a>
+    </div>
+    <div style="font-size:12px; color:#94a3b8;">
+      Горизонтально (X): 10 децилів КЗОСН (100–90 … 10–0) | У глибину (Z): Роки 2013 → 2025 | Вгору ↑: % заборон | Вниз ↓: % засуджених
+    </div>
+  </nav>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="ctrl highlight">
+        <label for="dimension-mode" style="color:#fde047;">Режим візуалізації:</label>
+        <select id="dimension-mode">
+          <option value="3d_surface">🌐 3D-Поверхня (10 децилів × Роки 2013–2025 у глибину)</option>
+          <option value="3d_bars">🧊 3D-Стовпчики (10 децилів × Роки 2013–2025 у глибину)</option>
+          <option value="3d_hybrid">✨ 3D-Гібрид (Напівпрозора поверхня + 3D-стовпчики)</option>
+          <option value="2d_poster">🖼 2D-Постер для Facebook (2013 vs 2025 / 3 епохи)</option>
+        </select>
+      </div>
+
+      <div class="ctrl" id="ctrl-3d-actions">
+        <button class="btn-action" id="flip3d-btn" title="Поміняти місцями верх (% заборон КК) і низ (% засуджених)">⇅ Змінити верх та низ</button>
+        <button class="btn-action" id="reset3d-btn">Скинути камеру</button>
+      </div>
+
+      <div class="ctrl" id="ctrl-3d-focus">
+        <label for="year-focus-3d">Виділити рік у 3D:</label>
+        <select id="year-focus-3d">
+          <option value="ALL">Усі роки (2013 – 2025)</option>
+        </select>
+      </div>
+
+      <div class="ctrl" id="ctrl-2d-layout" style="display:none;">
+        <label for="layout-mode">Композиція 2D:</label>
+        <select id="layout-mode">
+          <option value="compare_2013_2025">2 сюжети: 2013 vs 2025</option>
+          <option value="compare_3_eras">3 епохи: 2013 → 2021 → 2025</option>
+          <option value="single_year">Один рік (крупний план)</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label for="section-filter">Розділ КК:</label>
+        <select id="section-filter">
+          <option value="ALL">Усі розділи Особливої частини (I – XX)</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="download-btn">💾 Зберегти PNG</button>
+  </div>
+
+  <!-- =========================================================================
+       3D MODE CONTAINER (Default)
+       ========================================================================= -->
+  <div id="view3d-wrapper">
+    <div id="viewport3d">
+      <div class="decile-pills" id="decile-pills"></div>
+
+      <div class="hud3d" id="hud3d">
+        <h3 id="hud3d-title">3D-Еволюція децильного профілю КК України (2013 → 2025 у глибину)</h3>
+        <p id="hud3d-desc">
+          <b>Вгору (Y &gt; 0):</b> частка заборон КК (%) у кожному з 10 децилів I<sub>КЗОСН</sub> — стабільний лівий схил.
+          <b>Вниз (Y &lt; 0):</b> частка засуджених (%) — видно, як «центральний купол» 2013–2019 рр. після 2020 р. розщеплюється на два глибокі каньйони по краях (<b>90–80</b> та <b>20–0</b>)!
+        </p>
+        <div class="hud-legend">
+          <span><i class="dot" style="background:#ef4444"></i>100–80 (Тяжкі/особл. тяжкі ↑)</span>
+          <span><i class="dot" style="background:#eab308"></i>80–40 (Середні децилі ↑)</span>
+          <span><i class="dot" style="background:#22c55e"></i>40–0 (Проступки / м'які ↑)</span>
+          <span><i class="dot" style="background:linear-gradient(135deg,#c084fc,#f43f5e)"></i>Частка засуджених (% CONVIC) ↓</span>
+        </div>
+      </div>
+
+      <canvas id="canvas3d"></canvas>
+    </div>
+
+    <!-- Bottom Drawer: Selected (Decile × Year) Inspector & 2013-2025 Decile Dynamics -->
+    <section id="bottom3d-drawer">
+      <div class="b3d-left">
+        <div>
+          <h2>
+            <span id="b3d-title">Дециль I_КЗОСН [90 – 80] • 2025 рік</span>
+            <span id="b3d-sec" style="font-size:11.5px; color:var(--muted); font-weight:500;">Увесь КК</span>
+          </h2>
+          <div class="b3d-desc" id="b3d-subtitle">Тяжкі злочини з високою межею (7–12 р. ПВ)</div>
+          <div class="b3d-top-list" id="b3d-top-list"></div>
+        </div>
+        <div class="b3d-stats">
+          <div class="stat-mini">
+            <span>Частка заборон КК ↑</span>
+            <strong id="b3d-stat-norm" style="color:#38bdf8;">—</strong>
+          </div>
+          <div class="stat-mini">
+            <span>Мертвих норм (0 вироків)</span>
+            <strong id="b3d-stat-dead" style="color:#f87171;">—</strong>
+          </div>
+          <div class="stat-mini" style="border-color:rgba(232,121,249,0.35);">
+            <span style="color:#f0abfc;">Частка засуджених ↓</span>
+            <strong id="b3d-stat-conv" style="color:#f0abfc;">—</strong>
+          </div>
+          <div class="stat-mini" style="border-color:rgba(253,224,71,0.35);">
+            <span style="color:#fde047;">Інтенсивність (%вир/%норм)</span>
+            <strong id="b3d-stat-ratio" style="color:#fde047;">—</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="b3d-right">
+        <div class="b3d-chart-head">
+          <strong id="b3d-chart-title" style="color:#f8fafc;">Часова динаміка обраного дециля [90 – 80] за 2013 – 2025 рр.</strong>
+          <span>
+            <span style="color:#38bdf8">━●━ Частка заборон КК у децилі (%) ↑</span> &nbsp;|&nbsp;
+            <span style="color:#f43f5e">━■━ Частка засуджених осіб у децилі (%) ↓</span>
+          </span>
+        </div>
+        <div id="decile-timeline-wrap">
+          <svg id="decile-timeline-svg" viewBox="0 0 900 185" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- =========================================================================
+       2D MODE CONTAINER
+       ========================================================================= -->
+  <div id="view2d-wrapper">
+    <div class="poster-wrap">
+      <canvas id="decile-canvas" width="2400" height="1560"></canvas>
+    </div>
+
+    <div class="inspector-panel">
+      <div class="insp-header">
+        <h2 id="insp-title">Деталізація дециля 90–80 (2025 рік)</h2>
+        <div class="insp-kpis" id="insp-kpis"></div>
+      </div>
+      <div class="table-wrap">
+        <table class="norm-table">
+          <thead>
+            <tr>
+              <th>Норма КК</th>
+              <th>Розділ</th>
+              <th>Назва статті</th>
+              <th>I<sub>КЗОСН</sub> (Ранг)</th>
+              <th>Тяжкість (ст. 12)</th>
+              <th>Засуджено осіб (CONVIC)</th>
+              <th>% від усіх засуджених року</th>
+              <th>% усередині цього дециля</th>
+            </tr>
+          </thead>
+          <tbody id="insp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="hover-card"></div>
+
+  <script src="data.js"></script>
+  <script src="app_shell.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    (function () {
+      const DATA = window.KZOCN_DATA;
+      if (!DATA) {
+        alert("Помилка завантаження data.js!");
+        return;
+      }
+
+      const STATS_YEARS = ["2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"];
+      const DECILES = [
+        { idx: 0, label: "100 – 90", short: "100–90", lo: 90.0, hi: 100.0, incHi: true,  desc: "Екстра-суворі (довічне / 10–15 р. ПВ)" },
+        { idx: 1, label: "90 – 80",  short: "90–80",  lo: 80.0, hi: 90.0,  incHi: false, desc: "Тяжкі з високою межею (7–12 р. ПВ)" },
+        { idx: 2, label: "80 – 70",  short: "80–70",  lo: 70.0, hi: 80.0,  incHi: false, desc: "Тяжкі базові (5–10 р. ПВ)" },
+        { idx: 3, label: "70 – 60",  short: "70–60",  lo: 60.0, hi: 70.0,  incHi: false, desc: "Нетяжкі суворі (3–5 р. ПВ без м'яких альт.)" },
+        { idx: 4, label: "60 – 50",  short: "60–50",  lo: 50.0, hi: 60.0,  incHi: false, desc: "Нетяжкі помірні (до 5 р. ПВ з альт.)" },
+        { idx: 5, label: "50 – 40",  short: "50–40",  lo: 40.0, hi: 50.0,  incHi: false, desc: "Нетяжкі м'які (до 3 р. ПВ / обмеж. волі)" },
+        { idx: 6, label: "40 – 30",  short: "40–30",  lo: 30.0, hi: 40.0,  incHi: false, desc: "Нетяжкі без ПВ (обмеження волі / штрафи)" },
+        { idx: 7, label: "30 – 20",  short: "30–20",  lo: 20.0, hi: 30.0,  incHi: false, desc: "Межа нетяжких та проступків" },
+        { idx: 8, label: "20 – 10",  short: "20–10",  lo: 10.0, hi: 20.0,  incHi: false, desc: "Кримінальні проступки (обмеж. волі / арешт)" },
+        { idx: 9, label: "10 – 0",   short: "10–0",   lo: 0.0,  hi: 10.0,  incHi: false, desc: "Найм'якші проступки (штрафи / гром. роботи)" },
+      ];
+
+      // State
+      let dimensionMode = "3d_surface"; // '3d_surface' | '3d_bars' | '3d_hybrid' | '2d_poster'
+      let selectedYear = "2025";
+      let selectedBinIdx = 1; // 90-80
+      let hoveredBinIdx = null;
+      let lockedBinIdx = null;
+      let focusedYear3D = "ALL";
+      let isFlipped3D = false;
+      let currentFlipY = 1.0;
+      let targetFlipY = 1.0;
+
+      // DOM Elements
+      const dimensionModeSel = document.getElementById("dimension-mode");
+      const flip3dBtn = document.getElementById("flip3d-btn");
+      const reset3dBtn = document.getElementById("reset3d-btn");
+      const yearFocus3dSel = document.getElementById("year-focus-3d");
+      const layoutModeSel = document.getElementById("layout-mode");
+      const sectionFilterSel = document.getElementById("section-filter");
+      const downloadBtn = document.getElementById("download-btn");
+      const view3dWrapper = document.getElementById("view3d-wrapper");
+      const view2dWrapper = document.getElementById("view2d-wrapper");
+      const hoverCard = document.getElementById("hover-card");
+      const pillsContainer = document.getElementById("decile-pills");
+
+      // Populate Year Focus 3D selector
+      STATS_YEARS.forEach((yr) => {
+        const opt = document.createElement("option");
+        opt.value = yr;
+        opt.textContent = `${yr} рік`;
+        yearFocus3dSel.appendChild(opt);
+      });
+
+      // Populate Section Filter
+      DATA.sections.forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.title;
+        sectionFilterSel.appendChild(opt);
+      });
+
+      // Populate Decile Pills (100-90 .. 10-0)
+      DECILES.forEach((d) => {
+        const pill = document.createElement("div");
+        pill.className = "dec-pill";
+        pill.dataset.idx = d.idx;
+        pill.textContent = `КЗОСН ${d.short}`;
+        pill.title = d.desc;
+        pill.addEventListener("mouseenter", () => {
+          if (lockedBinIdx === null) {
+            hoveredBinIdx = d.idx;
+            selectedBinIdx = d.idx;
+            updateDecilePillsUI();
+            apply3DHighlightState();
+            updateBottom3DDrawer();
+          }
+        });
+        pill.addEventListener("mouseleave", () => {
+          if (lockedBinIdx === null) {
+            hoveredBinIdx = null;
+            updateDecilePillsUI();
+            apply3DHighlightState();
+          }
+        });
+        pill.addEventListener("click", () => {
+          if (lockedBinIdx === d.idx) {
+            lockedBinIdx = null;
+            hoveredBinIdx = null;
+          } else {
+            lockedBinIdx = d.idx;
+            selectedBinIdx = d.idx;
+            updateBottom3DDrawer();
+          }
+          updateDecilePillsUI();
+          apply3DHighlightState();
+        });
+        pillsContainer.appendChild(pill);
+      });
+
+      function updateDecilePillsUI() {
+        document.querySelectorAll(".dec-pill").forEach((el) => {
+          const idx = Number(el.dataset.idx);
+          el.classList.toggle("locked", lockedBinIdx === idx);
+          el.classList.toggle("hovered", hoveredBinIdx === idx && lockedBinIdx !== idx);
+        });
+      }
+
+      // Compute decile data for one year & section filter
+      function computeDecilesForYear(yearStr, secFilter) {
+        const allRecs = (DATA.byEdition[yearStr] || []).filter(
+          (r) => secFilter === "ALL" || r[0] === secFilter
+        );
+        const totalNorms = allRecs.length;
+        const totalConvic = allRecs.reduce((acc, r) => acc + (r[12] || 0), 0);
+
+        const bins = DECILES.map((d) => ({
+          ...d,
+          year: yearStr,
+          norms: [],
+          normCount: 0,
+          deadCount: 0,
+          normPct: 0,
+          convicSum: 0,
+          convicPct: 0,
+          intensityRatio: 0,
+          topNorms: [],
+        }));
+
+        allRecs.forEach((r) => {
+          const kzosn = r[5];
+          const conv = r[12] || 0;
+          let bIdx = 9;
+          for (let i = 0; i < DECILES.length; i++) {
+            const d = DECILES[i];
+            if (d.incHi) {
+              if (kzosn > d.lo && kzosn <= d.hi) { bIdx = i; break; }
+            } else if (d.lo === 0.0) {
+              if (kzosn >= 0.0 && kzosn <= d.hi) { bIdx = i; break; }
+            } else {
+              if (kzosn > d.lo && kzosn <= d.hi) { bIdx = i; break; }
+            }
+          }
+          const b = bins[bIdx];
+          b.norms.push(r);
+          b.normCount += 1;
+          if (conv === 0) b.deadCount += 1;
+          b.convicSum += conv;
+        });
+
+        bins.forEach((b) => {
+          b.normPct = totalNorms > 0 ? (b.normCount / totalNorms) * 100 : 0;
+          b.convicPct = totalConvic > 0 ? (b.convicSum / totalConvic) * 100 : 0;
+          b.intensityRatio = b.normPct > 0 ? b.convicPct / b.normPct : 0;
+          b.norms.sort((x, y) => (y[12] || 0) - (x[12] || 0) || y[5] - x[5]);
+          b.topNorms = b.norms.filter((r) => (r[12] || 0) > 0).slice(0, 4).map((r) => {
+            const p = totalConvic > 0 ? ((r[12] || 0) / totalConvic) * 100 : 0;
+            return {
+              label: r[4],
+              convic: r[12] || 0,
+              pct: p,
+              kzosn: r[5],
+              title: DATA.titles[r[9]] || "",
+            };
+          });
+        });
+
+        const avgNomKzosn = totalNorms > 0 ? allRecs.reduce((a, r) => a + r[5], 0) / totalNorms : 0;
+        const weightedKzosn =
+          totalConvic > 0 ? allRecs.reduce((a, r) => a + r[5] * (r[12] || 0), 0) / totalConvic : 0;
+
+        return {
+          year: yearStr,
+          totalNorms,
+          totalConvic,
+          avgNomKzosn,
+          weightedKzosn,
+          bins,
+        };
+      }
+
+      // Compute full 13-year matrix (2013..2025 × 10 deciles)
+      let matrixByYear = {};
+      function rebuildMatrixData() {
+        const secFilter = sectionFilterSel.value;
+        matrixByYear = {};
+        STATS_YEARS.forEach((yr) => {
+          matrixByYear[yr] = computeDecilesForYear(yr, secFilter);
+        });
+      }
+
+      // Color helpers
+      function getUpperDecileHex(binIdx) {
+        const pal = [
+          "#ef4444", "#f97316", "#fb923c", "#f59e0b", "#eab308",
+          "#a3e635", "#4ade80", "#22c55e", "#10b981", "#14b8a6"
+        ];
+        return pal[binIdx] || "#38bdf8";
+      }
+
+      function getUpperThreeColor(binIdx, normPct) {
+        const c = new THREE.Color(getUpperDecileHex(binIdx));
+        const boost = 0.85 + Math.min(0.3, normPct / 80);
+        return c.multiplyScalar(boost);
+      }
+
+      function getLowerThreeColor(convicPct) {
+        // 0% -> deep violet-blue (0.68), 15% -> bright magenta (0.85), 30%+ -> fiery crimson-rose (0.96)
+        const t = Math.max(0, Math.min(1, convicPct / 28.0));
+        return new THREE.Color().setHSL(0.68 + t * 0.28, 0.90, 0.44 + t * 0.16);
+      }
+
+      // =========================================================================
+      // THREE.JS 3D SCENE: 10 Deciles (X) × 13 Years 2013->2025 (Z) × % (Y up/down)
+      // =========================================================================
+      const canvas3d = document.getElementById("canvas3d");
+      const renderer = new THREE.WebGLRenderer({
+        canvas: canvas3d,
+        antialias: true,
+        preserveDrawingBuffer: true,
+        powerPreference: "high-performance",
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x050811);
+      scene.fog = new THREE.FogExp2(0x050811, 0.0014);
+
+      const camera = new THREE.PerspectiveCamera(42, 1, 1, 2500);
+      camera.position.set(0, 115, 235);
+
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, -4, -55);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.maxDistance = 750;
+      controls.minDistance = 30;
+      controls.update();
+
+      // Lights from top and bottom
+      scene.add(new THREE.AmbientLight(0xdbeafe, 0.76));
+      const lightTop = new THREE.DirectionalLight(0xffffff, 0.88);
+      lightTop.position.set(120, 260, 180);
+      scene.add(lightTop);
+
+      const lightBot = new THREE.DirectionalLight(0xf472b6, 0.72);
+      lightBot.position.set(-120, -260, 160);
+      scene.add(lightBot);
+
+      // Horizontal Mirror Plane Grid (Y = 0)
+      const gridHelper = new THREE.GridHelper(320, 20, 0x38bdf8, 0x1e293b);
+      gridHelper.position.set(0, 0, -66);
+      scene.add(gridHelper);
+
+      const flipRoot = new THREE.Group();
+      scene.add(flipRoot);
+
+      const labelsRoot = new THREE.Group();
+      scene.add(labelsRoot);
+
+      const selectionRoot = new THREE.Group();
+      flipRoot.add(selectionRoot);
+
+      // Layout constants for 10 Deciles (X) × 13 Years (Z)
+      const DEC_SPACING_X = 16.5;   // 10 columns across X: span = 9 * 16.5 = 148.5 units
+      const YEAR_SPACING_Z = 11.5;  // 13 years into depth -Z: span = 12 * 11.5 = 138 units
+      const PCT_HEIGHT_SCALE = 2.6; // 1% = 2.6 Y units (so 20% = 52 units UP, 30% = 78 units DOWN)
+
+      const upBoxGeo = new THREE.BoxGeometry(1, 1, 1);
+      upBoxGeo.translate(0, 0.5, 0);
+      const upEdgesGeo = new THREE.EdgesGeometry(upBoxGeo);
+
+      const downBoxGeo = new THREE.BoxGeometry(1, 1, 1);
+      downBoxGeo.translate(0, -0.5, 0);
+      const downEdgesGeo = new THREE.EdgesGeometry(downBoxGeo);
+
+      const nodeSphereGeo = new THREE.SphereGeometry(1.15, 14, 14);
+
+      let interactive3DObjects = [];
+      let surfaceMeshes3D = []; // { mesh, wire, isDown }
+      let barMeshes3D = [];     // { mesh, edge, binIdx, year, isDown }
+
+      function makeSpriteLabel(text, opts = {}) {
+        const fontSize = opts.fontSize || 32;
+        const fg = opts.color || "#e0f2fe";
+        const bg = opts.bg || "rgba(15, 23, 42, 0.88)";
+        const border = opts.border || "rgba(56, 189, 248, 0.55)";
+
+        const c = document.createElement("canvas");
+        const ctx2 = c.getContext("2d");
+        ctx2.font = `bold ${fontSize}px Segoe UI, sans-serif`;
+        const tw = ctx2.measureText(text).width;
+        const padX = 20, padY = 12;
+        c.width = Math.ceil(tw + padX * 2);
+        c.height = Math.ceil(fontSize + padY * 2);
+
+        ctx2.fillStyle = bg;
+        ctx2.strokeStyle = border;
+        ctx2.lineWidth = 3;
+        ctx2.beginPath();
+        ctx2.roundRect(2, 2, c.width - 4, c.height - 4, 9);
+        ctx2.fill();
+        ctx2.stroke();
+
+        ctx2.fillStyle = fg;
+        ctx2.font = `bold ${fontSize}px Segoe UI, sans-serif`;
+        ctx2.textAlign = "center";
+        ctx2.textBaseline = "middle";
+        ctx2.fillText(text, c.width / 2, c.height / 2);
+
+        const tex = new THREE.CanvasTexture(c);
+        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+        const sp = new THREE.Sprite(mat);
+        const sc = opts.scale || 0.085;
+        sp.scale.set(c.width * sc, c.height * sc, 1);
+        return sp;
+      }
+
+      function getDecileX(binIdx) {
+        const startX = -((DECILES.length - 1) * DEC_SPACING_X) / 2;
+        return startX + binIdx * DEC_SPACING_X;
+      }
+
+      function getYearZ(yrIdx) {
+        return -yrIdx * YEAR_SPACING_Z;
+      }
+
+      function build3DScene() {
+        // Clear previous objects
+        while (flipRoot.children.length > 0) {
+          const ch = flipRoot.children[0];
+          flipRoot.remove(ch);
+        }
+        flipRoot.add(selectionRoot);
+        while (selectionRoot.children.length > 0) {
+          selectionRoot.remove(selectionRoot.children[0]);
+        }
+        while (labelsRoot.children.length > 0) {
+          labelsRoot.remove(labelsRoot.children[0]);
+        }
+
+        interactive3DObjects = [];
+        surfaceMeshes3D = [];
+        barMeshes3D = [];
+
+        const showSurface = dimensionMode === "3d_surface" || dimensionMode === "3d_hybrid";
+        const showBars = dimensionMode === "3d_bars" || dimensionMode === "3d_hybrid";
+
+        const numYears = STATS_YEARS.length; // 13
+        const numBins = DECILES.length;      // 10
+
+        // 1. Axis Labels in 3D space: 10 Deciles along front (Z = +14) & 13 Years along right/left sides
+        DECILES.forEach((d, bIdx) => {
+          const x = getDecileX(bIdx);
+          const sp = makeSpriteLabel(d.short, {
+            fontSize: 32,
+            scale: 0.082,
+            color: getUpperDecileHex(bIdx),
+            border: getUpperDecileHex(bIdx),
+          });
+          sp.position.set(x, 2.2, 14);
+          labelsRoot.add(sp);
+        });
+
+        STATS_YEARS.forEach((yr, yIdx) => {
+          const z = getYearZ(yIdx);
+          const isMilestone = yr === "2013" || yr === "2019" || yr === "2020" || yr === "2022" || yr === "2025";
+          const spRight = makeSpriteLabel(yr, {
+            fontSize: isMilestone ? 32 : 27,
+            scale: isMilestone ? 0.082 : 0.072,
+            color: isMilestone ? "#fde047" : "#cbd5e1",
+            border: isMilestone ? "rgba(253, 224, 71, 0.65)" : "rgba(148, 163, 184, 0.35)",
+          });
+          spRight.position.set(getDecileX(9) + 15, 1.5, z);
+          labelsRoot.add(spRight);
+
+          const spLeft = makeSpriteLabel(yr, {
+            fontSize: isMilestone ? 32 : 27,
+            scale: isMilestone ? 0.082 : 0.072,
+            color: isMilestone ? "#fde047" : "#cbd5e1",
+            border: isMilestone ? "rgba(253, 224, 71, 0.65)" : "rgba(148, 163, 184, 0.35)",
+          });
+          spLeft.position.set(getDecileX(0) - 15, 1.5, z);
+          labelsRoot.add(spLeft);
+        });
+
+        // 2. Build Upper & Lower 3D Surfaces (10 Deciles × 13 Years grid)
+        if (showSurface) {
+          const upPositions = [];
+          const upColors = [];
+          const downPositions = [];
+          const downColors = [];
+          const indices = [];
+
+          for (let yIdx = 0; yIdx < numYears; yIdx++) {
+            const yr = STATS_YEARS[yIdx];
+            const z = getYearZ(yIdx);
+            const st = matrixByYear[yr];
+
+            for (let bIdx = 0; bIdx < numBins; bIdx++) {
+              const x = getDecileX(bIdx);
+              const bin = st.bins[bIdx];
+
+              const yUp = Math.max(0.4, bin.normPct * PCT_HEIGHT_SCALE);
+              const colUp = getUpperThreeColor(bIdx, bin.normPct);
+              upPositions.push(x, yUp, z);
+              upColors.push(colUp.r, colUp.g, colUp.b);
+
+              const yDown = -Math.max(0.4, bin.convicPct * PCT_HEIGHT_SCALE);
+              const colDown = getLowerThreeColor(bin.convicPct);
+              downPositions.push(x, yDown, z);
+              downColors.push(colDown.r, colDown.g, colDown.b);
+            }
+
+            if (yIdx < numYears - 1) {
+              const rowA = yIdx * numBins;
+              const rowB = (yIdx + 1) * numBins;
+              for (let bIdx = 0; bIdx < numBins - 1; bIdx++) {
+                const a = rowA + bIdx;
+                const b = rowA + bIdx + 1;
+                const c = rowB + bIdx;
+                const d = rowB + bIdx + 1;
+                indices.push(a, c, b);
+                indices.push(b, c, d);
+              }
+            }
+          }
+
+          // Upper Surface (% Prohibitions)
+          const upGeo = new THREE.BufferGeometry();
+          upGeo.setAttribute("position", new THREE.Float32BufferAttribute(upPositions, 3));
+          upGeo.setAttribute("color", new THREE.Float32BufferAttribute(upColors, 3));
+          upGeo.setIndex(indices);
+          upGeo.computeVertexNormals();
+
+          const upSurfMat = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.32,
+            metalness: 0.15,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: dimensionMode === "3d_hybrid" ? 0.45 : 0.88,
+          });
+          const upSurfMesh = new THREE.Mesh(upGeo, upSurfMat);
+          flipRoot.add(upSurfMesh);
+
+          const upWire = new THREE.LineSegments(
+            new THREE.WireframeGeometry(upGeo),
+            new THREE.LineBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.42 })
+          );
+          flipRoot.add(upWire);
+          surfaceMeshes3D.push({ mesh: upSurfMesh, wire: upWire, isDown: false });
+
+          // Lower Surface (% Convictions)
+          const downGeo = new THREE.BufferGeometry();
+          downGeo.setAttribute("position", new THREE.Float32BufferAttribute(downPositions, 3));
+          downGeo.setAttribute("color", new THREE.Float32BufferAttribute(downColors, 3));
+          downGeo.setIndex(indices);
+          downGeo.computeVertexNormals();
+
+          const downSurfMat = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.28,
+            metalness: 0.18,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: dimensionMode === "3d_hybrid" ? 0.45 : 0.90,
+          });
+          const downSurfMesh = new THREE.Mesh(downGeo, downSurfMat);
+          flipRoot.add(downSurfMesh);
+
+          const downWire = new THREE.LineSegments(
+            new THREE.WireframeGeometry(downGeo),
+            new THREE.LineBasicMaterial({ color: 0xf0abfc, transparent: true, opacity: 0.45 })
+          );
+          flipRoot.add(downWire);
+          surfaceMeshes3D.push({ mesh: downSurfMesh, wire: downWire, isDown: true });
+
+          // Interactive Vertex Spheres on pure surface mode so every (Decile × Year) vertex can be hovered & clicked
+          if (!showBars) {
+            for (let yIdx = 0; yIdx < numYears; yIdx++) {
+              const yr = STATS_YEARS[yIdx];
+              const z = getYearZ(yIdx);
+              const st = matrixByYear[yr];
+
+              for (let bIdx = 0; bIdx < numBins; bIdx++) {
+                const x = getDecileX(bIdx);
+                const bin = st.bins[bIdx];
+                const yUp = Math.max(0.4, bin.normPct * PCT_HEIGHT_SCALE);
+                const yDown = -Math.max(0.4, bin.convicPct * PCT_HEIGHT_SCALE);
+
+                const mUp = new THREE.Mesh(
+                  nodeSphereGeo,
+                  new THREE.MeshBasicMaterial({
+                    color: getUpperThreeColor(bIdx, bin.normPct),
+                    transparent: true,
+                    opacity: 0.95,
+                  })
+                );
+                mUp.position.set(x, yUp, z);
+                mUp.userData = { binIdx: bIdx, year: yr, bin, stats: st, isDown: false, tipY: yUp };
+                flipRoot.add(mUp);
+                interactive3DObjects.push(mUp);
+                barMeshes3D.push({ mesh: mUp, edge: null, binIdx: bIdx, year: yr, isDown: false, isNode: true });
+
+                const mDown = new THREE.Mesh(
+                  nodeSphereGeo,
+                  new THREE.MeshBasicMaterial({
+                    color: getLowerThreeColor(bin.convicPct),
+                    transparent: true,
+                    opacity: 0.95,
+                  })
+                );
+                mDown.position.set(x, yDown, z);
+                mDown.userData = { binIdx: bIdx, year: yr, bin, stats: st, isDown: true, tipY: yDown };
+                flipRoot.add(mDown);
+                interactive3DObjects.push(mDown);
+                barMeshes3D.push({ mesh: mDown, edge: null, binIdx: bIdx, year: yr, isDown: true, isNode: true });
+              }
+            }
+          }
+        }
+
+        // 3. Build 3D Columns (10 Deciles × 13 Years) going UP and DOWN
+        if (showBars) {
+          const barW = DEC_SPACING_X * (dimensionMode === "3d_hybrid" ? 0.42 : 0.66);
+          const barD = YEAR_SPACING_Z * (dimensionMode === "3d_hybrid" ? 0.42 : 0.64);
+
+          for (let yIdx = 0; yIdx < numYears; yIdx++) {
+            const yr = STATS_YEARS[yIdx];
+            const z = getYearZ(yIdx);
+            const st = matrixByYear[yr];
+
+            for (let bIdx = 0; bIdx < numBins; bIdx++) {
+              const x = getDecileX(bIdx);
+              const bin = st.bins[bIdx];
+
+              const hUp = Math.max(0.5, bin.normPct * PCT_HEIGHT_SCALE);
+              const hDown = Math.max(0.5, bin.convicPct * PCT_HEIGHT_SCALE);
+
+              // Upper Bar (% Prohibitions)
+              const upMat = new THREE.MeshStandardMaterial({
+                color: getUpperThreeColor(bIdx, bin.normPct),
+                roughness: 0.30,
+                metalness: 0.15,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.94,
+              });
+              const upMesh = new THREE.Mesh(upBoxGeo, upMat);
+              upMesh.position.set(x, 0.06, z);
+              upMesh.scale.set(barW, hUp, barD);
+              upMesh.userData = { binIdx: bIdx, year: yr, bin, stats: st, isDown: false, tipY: hUp };
+              flipRoot.add(upMesh);
+              interactive3DObjects.push(upMesh);
+
+              const upEdge = new THREE.LineSegments(
+                upEdgesGeo,
+                new THREE.LineBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.40 })
+              );
+              upEdge.position.set(x, 0.06, z);
+              upEdge.scale.set(barW, hUp, barD);
+              flipRoot.add(upEdge);
+              barMeshes3D.push({ mesh: upMesh, edge: upEdge, binIdx: bIdx, year: yr, isDown: false });
+
+              // Lower Bar (% Convictions)
+              const downMat = new THREE.MeshStandardMaterial({
+                color: getLowerThreeColor(bin.convicPct),
+                roughness: 0.28,
+                metalness: 0.18,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.94,
+              });
+              const downMesh = new THREE.Mesh(downBoxGeo, downMat);
+              downMesh.position.set(x, -0.06, z);
+              downMesh.scale.set(barW, hDown, barD);
+              downMesh.userData = { binIdx: bIdx, year: yr, bin, stats: st, isDown: true, tipY: -hDown };
+              flipRoot.add(downMesh);
+              interactive3DObjects.push(downMesh);
+
+              const downEdge = new THREE.LineSegments(
+                downEdgesGeo,
+                new THREE.LineBasicMaterial({ color: 0xf0abfc, transparent: true, opacity: 0.42 })
+              );
+              downEdge.position.set(x, -0.06, z);
+              downEdge.scale.set(barW, hDown, barD);
+              flipRoot.add(downEdge);
+              barMeshes3D.push({ mesh: downMesh, edge: downEdge, binIdx: bIdx, year: yr, isDown: true });
+            }
+          }
+        }
+
+        apply3DHighlightState();
+        updateBottom3DDrawer();
+      }
+
+      // Highlighting in 3D when a specific Decile or Year is focused/hovered
+      function apply3DHighlightState() {
+        const activeBin = lockedBinIdx !== null ? lockedBinIdx : hoveredBinIdx;
+        const activeYr = focusedYear3D !== "ALL" ? focusedYear3D : null;
+        const hasFilter = activeBin !== null || activeYr !== null;
+
+        surfaceMeshes3D.forEach((s) => {
+          const baseOp = dimensionMode === "3d_hybrid" ? 0.42 : 0.88;
+          s.mesh.material.opacity = hasFilter ? 0.14 : baseOp;
+          s.mesh.material.depthWrite = !hasFilter;
+          s.wire.material.opacity = hasFilter ? 0.22 : 0.42;
+        });
+
+        barMeshes3D.forEach((b) => {
+          const matchBin = activeBin === null || b.binIdx === activeBin;
+          const matchYr = activeYr === null || b.year === activeYr;
+          const ok = matchBin && matchYr;
+
+          if (!hasFilter) {
+            b.mesh.material.opacity = 0.94;
+            b.mesh.material.depthWrite = true;
+            if (b.isNode) b.mesh.scale.setScalar(1.0);
+            if (b.edge) {
+              b.edge.material.color.setHex(b.isDown ? 0xf0abfc : 0x7dd3fc);
+              b.edge.material.opacity = 0.40;
+            }
+          } else if (ok) {
+            b.mesh.material.opacity = 1.0;
+            b.mesh.material.depthWrite = true;
+            if (b.isNode) b.mesh.scale.setScalar(1.55);
+            if (b.edge) {
+              b.edge.material.color.setHex(0xffffff);
+              b.edge.material.opacity = 0.95;
+            }
+          } else {
+            b.mesh.material.opacity = 0.04;
+            b.mesh.material.depthWrite = false;
+            if (b.isNode) b.mesh.scale.setScalar(0.65);
+            if (b.edge) {
+              b.edge.material.color.setHex(0x334155);
+              b.edge.material.opacity = 0.22;
+            }
+          }
+        });
+      }
+
+      // Update selection ring in 3D + Bottom 3D Drawer + 2013-2025 Decile SVG Timeline
+      function updateBottom3DDrawer() {
+        while (selectionRoot.children.length > 0) {
+          selectionRoot.remove(selectionRoot.children[0]);
+        }
+
+        const st = matrixByYear[selectedYear];
+        if (!st) return;
+        const bin = st.bins[selectedBinIdx];
+        if (!bin) return;
+
+        // Place white/magenta rings on selected (selectedBinIdx, selectedYear) in 3D
+        const yIdx = STATS_YEARS.indexOf(selectedYear);
+        if (yIdx >= 0) {
+          const x = getDecileX(selectedBinIdx);
+          const z = getYearZ(yIdx);
+          const yUp = Math.max(0.5, bin.normPct * PCT_HEIGHT_SCALE);
+          const yDown = -Math.max(0.5, bin.convicPct * PCT_HEIGHT_SCALE);
+
+          const rGeo = new THREE.RingGeometry(1.8, 2.8, 24);
+          const rUp = new THREE.Mesh(
+            rGeo,
+            new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+          );
+          rUp.position.set(x, yUp + 1.6, z);
+          selectionRoot.add(rUp);
+
+          const rDown = new THREE.Mesh(
+            rGeo,
+            new THREE.MeshBasicMaterial({ color: 0xfde047, side: THREE.DoubleSide })
+          );
+          rDown.position.set(x, yDown - 1.6, z);
+          selectionRoot.add(rDown);
+        }
+
+        // Fill left inspector in bottom drawer
+        const secVal = sectionFilterSel.value;
+        document.getElementById("b3d-title").textContent = `Дециль I_КЗОСН [${bin.label}] • ${selectedYear} рік`;
+        document.getElementById("b3d-sec").textContent = secVal === "ALL" ? "Усі розділи КК" : `Розділ ${secVal}`;
+        document.getElementById("b3d-subtitle").textContent = bin.desc;
+
+        if (bin.topNorms.length > 0) {
+          document.getElementById("b3d-top-list").innerHTML =
+            `<b>Головні статті-драйвери цього дециля у ${selectedYear} р.:</b><br/>` +
+            bin.topNorms
+              .map(
+                (t) =>
+                  `• <b>${t.label}</b> (КЗОСН=${t.kzosn.toFixed(1)}): <b style="color:#f0abfc">${t.convic.toLocaleString("uk-UA")} засудж.</b> (<b>${t.pct.toFixed(2)}%</b> усіх вироків року) — ${t.title.slice(0, 48)}`
+              )
+              .join("<br/>");
+        } else {
+          document.getElementById("b3d-top-list").innerHTML =
+            `У ${selectedYear} році за нормами цього дециля (${bin.normCount} норм) засуджених осіб не зафіксовано.`;
+        }
+
+        document.getElementById("b3d-stat-norm").textContent = `${bin.normPct.toFixed(1)}% (${bin.normCount})`;
+        document.getElementById("b3d-stat-dead").textContent = `${bin.deadCount} (${bin.normCount > 0 ? ((bin.deadCount / bin.normCount) * 100).toFixed(0) : 0}%)`;
+        document.getElementById("b3d-stat-conv").textContent = `${bin.convicPct.toFixed(1)}% (${bin.convicSum.toLocaleString("uk-UA")})`;
+        document.getElementById("b3d-stat-ratio").textContent = `${bin.intensityRatio.toFixed(2)}×`;
+
+        // Render SVG Timeline of this Decile across 2013..2025
+        document.getElementById("b3d-chart-title").innerHTML =
+          `Динаміка дециля <b>I<sub>КЗОСН</sub> [${bin.label}]</b> за 2013 – 2025 рр.: % заборон КК vs % засуджених`;
+
+        const svg = document.getElementById("decile-timeline-svg");
+        const W = 900, H = 185, padL = 46, padR = 24, padT = 22, padB = 32;
+        const plotW = W - padL - padR, plotH = H - padT - padB;
+
+        const ptsNorm = [];
+        const ptsConv = [];
+        let maxVal = 25;
+
+        STATS_YEARS.forEach((yr) => {
+          const b = matrixByYear[yr].bins[selectedBinIdx];
+          if (b.normPct > maxVal) maxVal = b.normPct;
+          if (b.convicPct > maxVal) maxVal = b.convicPct;
+        });
+        const yMax = Math.ceil((maxVal + 3) / 5) * 5;
+
+        let html = "";
+        for (let s = 0; s <= 4; s++) {
+          const val = (yMax * s) / 4;
+          const y = padT + plotH - (val / yMax) * plotH;
+          html += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-dasharray="3,3" />`;
+          html += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#94a3b8" font-size="10.5">${val.toFixed(0)}%</text>`;
+        }
+
+        STATS_YEARS.forEach((yr, i) => {
+          const x = padL + (i / (STATS_YEARS.length - 1)) * plotW;
+          const isCur = yr === selectedYear;
+          html += `<text x="${x}" y="${H - 9}" text-anchor="middle" fill="${isCur ? "#fde047" : "#cbd5e1"}" font-weight="${isCur ? "700" : "400"}" font-size="11">${yr}</text>`;
+
+          const b = matrixByYear[yr].bins[selectedBinIdx];
+          const yN = padT + plotH - (b.normPct / yMax) * plotH;
+          const yC = padT + plotH - (b.convicPct / yMax) * plotH;
+          ptsNorm.push({ yr, x, y: yN, val: b.normPct, cnt: b.normCount });
+          ptsConv.push({ yr, x, y: yC, val: b.convicPct, cnt: b.convicSum });
+        });
+
+        const pathN = ptsNorm.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+        const pathC = ptsConv.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+        const areaC = `${pathC} L ${ptsConv[ptsConv.length - 1].x.toFixed(1)} ${padT + plotH} L ${ptsConv[0].x.toFixed(1)} ${padT + plotH} Z`;
+
+        html += `<path d="${areaC}" fill="rgba(244, 63, 94, 0.14)" />`;
+        html += `<path d="${pathN}" fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-dasharray="5,3" />`;
+        html += `<path d="${pathC}" fill="none" stroke="#f43f5e" stroke-width="2.8" />`;
+
+        ptsNorm.forEach((p) => {
+          const isCur = p.yr === selectedYear;
+          html += `<circle cx="${p.x}" cy="${p.y}" r="${isCur ? 5.5 : 3.8}" fill="#38bdf8" stroke="#0f172a" stroke-width="1.2" style="cursor:pointer" data-yr="${p.yr}">
+            <title>${p.yr}: Частка заборон КК = ${p.val.toFixed(1)}% (${p.cnt} норм)</title>
+          </circle>`;
+          if (isCur || p.yr === "2013" || p.yr === "2025") {
+            html += `<text x="${p.x}" y="${Math.max(12, p.y - 7)}" text-anchor="middle" fill="#7dd3fc" font-size="9.8" font-weight="600">${p.val.toFixed(1)}%</text>`;
+          }
+        });
+
+        ptsConv.forEach((p) => {
+          const isCur = p.yr === selectedYear;
+          if (isCur) {
+            html += `<line x1="${p.x}" y1="${padT}" x2="${p.x}" y2="${padT + plotH}" stroke="rgba(253,224,71,0.45)" stroke-width="1.5" />`;
+          }
+          const r = isCur ? 5.5 : 4.0;
+          html += `<rect x="${p.x - r}" y="${p.y - r}" width="${r * 2}" height="${r * 2}" rx="2" fill="#f43f5e" stroke="#0f172a" stroke-width="1.2" style="cursor:pointer" data-yr="${p.yr}">
+            <title>${p.yr}: Частка засуджених = ${p.val.toFixed(1)}% (${p.cnt.toLocaleString("uk-UA")} осіб)</title>
+          </rect>`;
+          if (isCur || p.yr === "2013" || p.yr === "2019" || p.yr === "2021" || p.yr === "2023" || p.yr === "2025") {
+            html += `<text x="${p.x}" y="${Math.min(padT + plotH - 3, p.y + 14)}" text-anchor="middle" fill="#fda4af" font-size="10" font-weight="700">${p.val.toFixed(1)}%</text>`;
+          }
+        });
+
+        svg.innerHTML = html;
+
+        svg.querySelectorAll("[data-yr]").forEach((el) => {
+          el.addEventListener("click", () => {
+            selectedYear = el.dataset.yr;
+            updateBottom3DDrawer();
+            render2DInspectorTable();
+          });
+        });
+      }
+
+      // Raycasting in 3D Viewport
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      let downPos = { x: 0, y: 0 };
+
+      canvas3d.addEventListener("pointermove", (e) => {
+        const rect = canvas3d.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+
+        // Filter raycast targets when a decile or year is locked/focused so invisible bars never intercept the ray
+        const activeTargets = interactive3DObjects.filter((obj) => {
+          const u = obj.userData;
+          if (lockedBinIdx !== null && u.binIdx !== lockedBinIdx) return false;
+          if (focusedYear3D !== "ALL" && u.year !== focusedYear3D) return false;
+          return true;
+        });
+
+        // Intersect both active nodes/bars AND 3D surfaces, and always pick whichever is closer to the camera
+        // so the ray never pierces through a front surface wall (e.g. 100-90) to hit a back node (e.g. 90-80)!
+        let hitData = null;
+        const hits = raycaster.intersectObjects(activeTargets, false);
+        const surfObjs = surfaceMeshes3D.map((s) => s.mesh);
+        const sHits = surfObjs.length > 0 ? raycaster.intersectObjects(surfObjs, false) : [];
+
+        let useSurfaceHit = false;
+        if (sHits.length > 0) {
+          if (hits.length === 0 || sHits[0].distance < hits[0].distance - 1.8) {
+            useSurfaceHit = true;
+          }
+        }
+
+        if (useSurfaceHit) {
+          const pt = sHits[0].point;
+          const startX = -((DECILES.length - 1) * DEC_SPACING_X) / 2;
+          const bIdx = Math.max(0, Math.min(9, Math.round((pt.x - startX) / DEC_SPACING_X)));
+          const yIdx = Math.max(0, Math.min(STATS_YEARS.length - 1, Math.round(-pt.z / YEAR_SPACING_Z)));
+          const yr = STATS_YEARS[yIdx];
+          const okBin = lockedBinIdx === null || bIdx === lockedBinIdx;
+          const okYr = focusedYear3D === "ALL" || yr === focusedYear3D;
+          if (okBin && okYr && matrixByYear[yr]) {
+            hitData = {
+              binIdx: bIdx,
+              year: yr,
+              bin: matrixByYear[yr].bins[bIdx],
+              stats: matrixByYear[yr],
+            };
+          } else if (hits.length > 0) {
+            hitData = hits[0].object.userData;
+          }
+        } else if (hits.length > 0) {
+          hitData = hits[0].object.userData;
+        }
+
+        if (hitData) {
+          const { binIdx, year, bin } = hitData;
+          canvas3d.style.cursor = "pointer";
+          const targetBin = lockedBinIdx !== null ? lockedBinIdx : binIdx;
+          if (hoveredBinIdx !== targetBin || selectedBinIdx !== targetBin || selectedYear !== year) {
+            hoveredBinIdx = targetBin;
+            selectedBinIdx = targetBin;
+            selectedYear = year;
+            updateDecilePillsUI();
+            apply3DHighlightState();
+            updateBottom3DDrawer();
+            render2DInspectorTable();
+          }
+
+          hoverCard.style.display = "block";
+          hoverCard.style.left = Math.min(window.innerWidth - 400, e.clientX + 16) + "px";
+          hoverCard.style.top = Math.max(12, e.clientY - 20) + "px";
+
+          const topStr =
+            bin.topNorms.length > 0
+              ? bin.topNorms
+                  .slice(0, 3)
+                  .map((t) => `• <b>${t.label}</b>: ${t.convic.toLocaleString("uk-UA")} ос. (${t.pct.toFixed(1)}%) — ${t.title.slice(0, 36)}`)
+                  .join("<br/>")
+              : "Засуджених не зафіксовано";
+
+          hoverCard.innerHTML = `
+            <div style="font-weight:700; color:#38bdf8; font-size:13.5px; margin-bottom:3px;">
+              Дециль I_КЗОСН [${bin.label}] • ${year} рік
+            </div>
+            <div style="color:#cbd5e1; font-size:11.5px; margin-bottom:6px;">${bin.desc}</div>
+            <div style="margin-bottom:4px;">
+              🔼 <b>Частка заборон КК:</b> <b style="color:#38bdf8">${bin.normPct.toFixed(1)}%</b> (${bin.normCount} норм, із них ${bin.deadCount} з 0 вироків)
+            </div>
+            <div style="color:#f0abfc; margin-bottom:6px;">
+              🔽 <b>Частка засуджених:</b> <b>${bin.convicPct.toFixed(1)}%</b> (${bin.convicSum.toLocaleString("uk-UA")} осіб) | Інтенсивність: <b style="color:#fde047">${bin.intensityRatio.toFixed(2)}×</b>
+            </div>
+            <div style="font-size:11px; color:#fde047; border-top:1px solid rgba(148,163,184,0.2); padding-top:5px;">
+              <b>Топ-норми дециля (${year}):</b><br/>${topStr}
+            </div>
+          `;
+          return;
+        }
+
+        canvas3d.style.cursor = "grab";
+        hoverCard.style.display = "none";
+        if (lockedBinIdx === null && hoveredBinIdx !== null) {
+          hoveredBinIdx = null;
+          updateDecilePillsUI();
+          apply3DHighlightState();
+        }
+      });
+
+      canvas3d.addEventListener("pointerdown", (e) => {
+        downPos = { x: e.clientX, y: e.clientY };
+      });
+
+      canvas3d.addEventListener("pointerup", (e) => {
+        if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+        const rect = canvas3d.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+
+        const hits = raycaster.intersectObjects(interactive3DObjects, false);
+        if (hits.length > 0) {
+          const { binIdx, year } = hits[0].object.userData;
+          selectedBinIdx = binIdx;
+          selectedYear = year;
+          updateBottom3DDrawer();
+          render2DInspectorTable();
+        }
+      });
+
+      // =========================================================================
+      // 2D POSTER RENDERING (Preserved & Integrated)
+      // =========================================================================
+      const canvas2d = document.getElementById("decile-canvas");
+      const ctx2d = canvas2d.getContext("2d");
+      let hitBoxes2D = [];
+
+      function draw2DHistogramBox(boxCfg) {
+        const { x0, y0, w, h, yearStr, badgeTitle, subtitle, compact } = boxCfg;
+        const stats = matrixByYear[yearStr];
+
+        const bgCard = "#0b1221";
+        const borderCard = "#1e293b";
+        const textMain = "#f8fafc";
+        const textSub = "#94a3b8";
+        const gridColor = "rgba(148, 163, 184, 0.14)";
+
+        ctx2d.fillStyle = bgCard;
+        ctx2d.strokeStyle = borderCard;
+        ctx2d.lineWidth = 2;
+        ctx2d.beginPath();
+        ctx2d.roundRect(x0, y0, w, h, 14);
+        ctx2d.fill();
+        ctx2d.stroke();
+
+        const badgeCol = yearStr === "2013" ? "#0284c7" : yearStr === "2021" ? "#7c3aed" : "#e11d48";
+        ctx2d.fillStyle = badgeCol;
+        ctx2d.beginPath();
+        ctx2d.roundRect(x0 + 20, y0 + 16, compact ? 115 : 135, 36, 8);
+        ctx2d.fill();
+
+        ctx2d.fillStyle = "#ffffff";
+        ctx2d.font = compact ? "800 18px 'Segoe UI', sans-serif" : "800 21px 'Segoe UI', sans-serif";
+        ctx2d.textAlign = "center";
+        ctx2d.fillText(badgeTitle, x0 + 20 + (compact ? 57.5 : 67.5), y0 + 40);
+
+        ctx2d.fillStyle = textMain;
+        ctx2d.font = compact ? "700 16px 'Segoe UI', sans-serif" : "700 20px 'Segoe UI', sans-serif";
+        ctx2d.textAlign = "left";
+        ctx2d.fillText(subtitle, x0 + (compact ? 148 : 170), y0 + 40);
+
+        const kpiStr =
+          `Норм: ${stats.totalNorms}  |  Засуджено: ${stats.totalConvic.toLocaleString("uk-UA")}  |  ` +
+          `Середній КЗОСН: текст КК ${stats.avgNomKzosn.toFixed(1)} → вироки ${stats.weightedKzosn.toFixed(1)}`;
+        ctx2d.fillStyle = textSub;
+        ctx2d.font = compact ? "600 13.5px 'Segoe UI', sans-serif" : "600 16px 'Segoe UI', sans-serif";
+        if (compact) {
+          ctx2d.textAlign = "left";
+          ctx2d.fillText(kpiStr, x0 + 20, y0 + 74);
+        } else {
+          ctx2d.textAlign = "right";
+          ctx2d.fillText(kpiStr, x0 + w - 24, y0 + 40);
+        }
+
+        const plotL = x0 + (compact ? 68 : 94);
+        const plotR = x0 + w - (compact ? 22 : 34);
+        const plotW = plotR - plotL;
+        const headerOffset = compact ? 92 : 68;
+        const availH = h - headerOffset - 26;
+        const axisY = y0 + headerOffset + availH * 0.43;
+        const upMaxH = availH * 0.37;
+        const downMaxH = availH * 0.46;
+        const maxUpPct = 25.0;
+        const maxDownPct = 35.0;
+
+        ctx2d.font = "600 13px 'Segoe UI', sans-serif";
+        ctx2d.textAlign = "right";
+        [10, 20].forEach((val) => {
+          const y = axisY - (val / maxUpPct) * upMaxH;
+          ctx2d.strokeStyle = gridColor;
+          ctx2d.setLineDash([4, 4]);
+          ctx2d.beginPath();
+          ctx2d.moveTo(plotL, y);
+          ctx2d.lineTo(plotR, y);
+          ctx2d.stroke();
+          ctx2d.setLineDash([]);
+          ctx2d.fillStyle = textSub;
+          ctx2d.fillText(`${val}%`, plotL - 10, y + 4);
+        });
+
+        [10, 20, 30].forEach((val) => {
+          const y = axisY + (val / maxDownPct) * downMaxH;
+          ctx2d.strokeStyle = gridColor;
+          ctx2d.setLineDash([4, 4]);
+          ctx2d.beginPath();
+          ctx2d.moveTo(plotL, y);
+          ctx2d.lineTo(plotR, y);
+          ctx2d.stroke();
+          ctx2d.setLineDash([]);
+          ctx2d.fillStyle = "#f472b6";
+          ctx2d.fillText(`${val}%`, plotL - 10, y + 4);
+        });
+
+        const slotW = plotW / 10;
+        const barW = slotW * 0.72;
+        const downCurvePts = [];
+
+        stats.bins.forEach((b, i) => {
+          const cx = plotL + (i + 0.5) * slotW;
+          const bx = cx - barW / 2;
+          const hUp = Math.min(upMaxH * 1.12, (b.normPct / maxUpPct) * upMaxH);
+          const hDown = Math.min(downMaxH * 1.08, (b.convicPct / maxDownPct) * downMaxH);
+          downCurvePts.push({ x: cx, y: axisY + hDown });
+
+          ctx2d.fillStyle = getUpperDecileHex(i);
+          ctx2d.beginPath();
+          ctx2d.roundRect(bx, axisY - hUp, barW, Math.max(2, hUp), [7, 7, 0, 0]);
+          ctx2d.fill();
+
+          ctx2d.fillStyle = textMain;
+          ctx2d.font = compact ? "bold 14px 'Segoe UI', sans-serif" : "bold 17px 'Segoe UI', sans-serif";
+          ctx2d.textAlign = "center";
+          ctx2d.fillText(`${b.normPct.toFixed(1)}%`, cx, axisY - hUp - (compact ? 18 : 22));
+          ctx2d.fillStyle = textSub;
+          ctx2d.font = compact ? "500 11px 'Segoe UI', sans-serif" : "500 13px 'Segoe UI', sans-serif";
+          ctx2d.fillText(`(${b.normCount} норм)`, cx, axisY - hUp - 5);
+
+          const isDominant = b.convicPct >= 15.0;
+          ctx2d.fillStyle = isDominant ? "#e11d48" : "#a855f7";
+          ctx2d.beginPath();
+          ctx2d.roundRect(bx, axisY + 2, barW, Math.max(2, hDown), [0, 0, 7, 7]);
+          ctx2d.fill();
+
+          const labelY1 = axisY + hDown + (compact ? 17 : 21);
+          ctx2d.fillStyle = isDominant ? "#fda4af" : "#f0abfc";
+          ctx2d.font = compact ? "bold 14.5px 'Segoe UI', sans-serif" : "bold 18px 'Segoe UI', sans-serif";
+          ctx2d.fillText(`${b.convicPct.toFixed(1)}%`, cx, labelY1);
+          ctx2d.fillStyle = textSub;
+          ctx2d.font = compact ? "500 10.5px 'Segoe UI', sans-serif" : "500 12.5px 'Segoe UI', sans-serif";
+          ctx2d.fillText(`${b.convicSum.toLocaleString("uk-UA")} ос.`, cx, labelY1 + (compact ? 13 : 16));
+
+          if (!compact && b.topNorms.length > 0 && b.convicPct >= 2.5) {
+            ctx2d.fillStyle = "#fde047";
+            ctx2d.font = "600 11.5px 'Segoe UI', sans-serif";
+            ctx2d.fillText(`${b.topNorms[0].label} (${b.topNorms[0].pct.toFixed(1)}%)`, cx, labelY1 + 33);
+          }
+
+          const pillW = Math.min(barW + 8, slotW - 4);
+          const pillH = compact ? 22 : 26;
+          ctx2d.fillStyle = "#1e293b";
+          ctx2d.strokeStyle = "#38bdf8";
+          ctx2d.lineWidth = 1.4;
+          ctx2d.beginPath();
+          ctx2d.roundRect(cx - pillW / 2, axisY - pillH / 2, pillW, pillH, 6);
+          ctx2d.fill();
+          ctx2d.stroke();
+
+          ctx2d.fillStyle = "#ffffff";
+          ctx2d.font = compact ? "bold 11.5px 'Segoe UI', sans-serif" : "bold 13.5px 'Segoe UI', sans-serif";
+          ctx2d.fillText(b.short, cx, axisY + (compact ? 4 : 5));
+
+          hitBoxes2D.push({
+            x1: plotL + i * slotW,
+            x2: plotL + (i + 1) * slotW,
+            y1: y0 + headerOffset,
+            y2: y0 + h - 10,
+            bin: b,
+          });
+        });
+
+        if (downCurvePts.length === 10) {
+          ctx2d.strokeStyle = "rgba(253, 224, 71, 0.65)";
+          ctx2d.lineWidth = 2.5;
+          ctx2d.setLineDash([6, 4]);
+          ctx2d.beginPath();
+          downCurvePts.forEach((p, idx) => {
+            if (idx === 0) ctx2d.moveTo(p.x, p.y);
+            else ctx2d.lineTo(p.x, p.y);
+          });
+          ctx2d.stroke();
+          ctx2d.setLineDash([]);
+        }
+      }
+
+      function render2DCanvas() {
+        hitBoxes2D = [];
+        const W = canvas2d.width, H = canvas2d.height, padX = 56;
+        ctx2d.fillStyle = "#050912";
+        ctx2d.fillRect(0, 0, W, H);
+
+        ctx2d.fillStyle = "#f8fafc";
+        ctx2d.font = "800 40px 'Segoe UI', sans-serif";
+        ctx2d.textAlign = "left";
+        ctx2d.fillText("ДЕЦИЛЬНИЙ ПРОФІЛЬ КК УКРАЇНИ: % ЗАБОРОН (↑) ТА % ЗАСУДЖЕНИХ (↓)", padX, 60);
+
+        ctx2d.fillStyle = "#38bdf8";
+        ctx2d.font = "600 22px 'Segoe UI', sans-serif";
+        ctx2d.fillText("Розподіл за 10 інтервалами індексу суворості санкцій I_КЗОСН (від 100–90 до 10–0)", padX, 96);
+
+        const layoutMode = layoutModeSel.value;
+        if (layoutMode === "compare_2013_2025") {
+          draw2DHistogramBox({
+            x0: padX, y0: 122, w: W - padX * 2, h: 670,
+            yearStr: "2013", badgeTitle: "2013 РІК",
+            subtitle: "«Центральний купол»: 75.9% усіх засуджених зосереджені в середніх децилях суворості (90–40)",
+            compact: false,
+          });
+          draw2DHistogramBox({
+            x0: padX, y0: 816, w: W - padX * 2, h: 680,
+            yearStr: "2025", badgeTitle: "2025 РІК",
+            subtitle: "«Двополюсна гантель»: провал середини та концентрація на полюсах 90–80 (23.4%) і проступків 20–0 (42.1%)",
+            compact: false,
+          });
+        } else if (layoutMode === "compare_3_eras") {
+          const gap = 24;
+          const boxW = (W - padX * 2 - gap * 2) / 3;
+          draw2DHistogramBox({ x0: padX, y0: 125, w: boxW, h: 1365, yearStr: "2013", badgeTitle: "2013 РІК", subtitle: "1. «Центральний купол»", compact: true });
+          draw2DHistogramBox({ x0: padX + boxW + gap, y0: 125, w: boxW, h: 1365, yearStr: "2021", badgeTitle: "2021 РІК", subtitle: "2. «Двогорба поляризація»", compact: true });
+          draw2DHistogramBox({ x0: padX + (boxW + gap) * 2, y0: 125, w: boxW, h: 1365, yearStr: "2025", badgeTitle: "2025 РІК", subtitle: "3. «U-подібна гантель»", compact: true });
+        } else {
+          draw2DHistogramBox({
+            x0: padX, y0: 125, w: W - padX * 2, h: 1365,
+            yearStr: selectedYear, badgeTitle: `${selectedYear} РІК`,
+            subtitle: `Детальний децильний профіль законодавчих заборон КК України та судової практики (${selectedYear} р.)`,
+            compact: false,
+          });
+        }
+      }
+
+      function render2DInspectorTable() {
+        const stats = matrixByYear[selectedYear];
+        if (!stats) return;
+        const bin = stats.bins[selectedBinIdx];
+        if (!bin) return;
+
+        document.getElementById("insp-title").innerHTML =
+          `Деталізація дециля <b>I<sub>КЗОСН</sub> ∈ [${bin.label}]</b> (${selectedYear} рік) — <span style="color:#cbd5e1;font-weight:500;">${bin.desc}</span>`;
+
+        document.getElementById("insp-kpis").innerHTML = `
+          <div class="insp-kpi">Заборон у децилі: <b>${bin.normCount}</b> (<b>${bin.normPct.toFixed(1)}%</b> КК)</div>
+          <div class="insp-kpi">Мертвих норм: <b style="color:#f87171">${bin.deadCount}</b></div>
+          <div class="insp-kpi">Засуджено: <b style="color:#f0abfc">${bin.convicSum.toLocaleString("uk-UA")} осіб</b> (<b>${bin.convicPct.toFixed(1)}%</b>)</div>
+          <div class="insp-kpi">Інтенсивність: <b style="color:#fde047">${bin.intensityRatio.toFixed(2)}×</b></div>
+        `;
+
+        const tbody = document.getElementById("insp-tbody");
+        tbody.innerHTML = bin.norms
+          .map((r) => {
+            const conv = r[12] || 0;
+            const pctAll = stats.totalConvic > 0 ? (conv / stats.totalConvic) * 100 : 0;
+            const pctBin = bin.convicSum > 0 ? (conv / bin.convicSum) * 100 : 0;
+            return `
+              <tr>
+                <td><b>${r[4]}</b></td>
+                <td>Розділ ${r[0]}</td>
+                <td>${DATA.titles[r[9]] || ""}</td>
+                <td><b>${r[5].toFixed(2)}</b> (#${r[6]}/${r[7]})</td>
+                <td>AS=${r[8]}</td>
+                <td style="font-weight:700; color:${conv > 0 ? "#f0abfc" : "#64748b"}">${conv.toLocaleString("uk-UA")}</td>
+                <td><b>${pctAll.toFixed(2)}%</b></td>
+                <td>${pctBin.toFixed(1)}%</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      canvas2d.addEventListener("mousemove", (e) => {
+        const rect = canvas2d.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (canvas2d.width / rect.width);
+        const my = (e.clientY - rect.top) * (canvas2d.height / rect.height);
+        const hit = hitBoxes2D.find((b) => mx >= b.x1 && mx <= b.x2 && my >= b.y1 && my <= b.y2);
+        if (hit) {
+          const b = hit.bin;
+          if (selectedBinIdx !== b.idx || selectedYear !== b.year) {
+            selectedBinIdx = b.idx;
+            selectedYear = b.year;
+            render2DInspectorTable();
+          }
+          hoverCard.style.display = "block";
+          hoverCard.style.left = Math.min(window.innerWidth - 400, e.clientX + 16) + "px";
+          hoverCard.style.top = Math.max(12, e.clientY - 20) + "px";
+          const topStr =
+            b.topNorms.length > 0
+              ? b.topNorms
+                  .slice(0, 3)
+                  .map((t) => `• <b>${t.label}</b>: ${t.convic.toLocaleString("uk-UA")} ос. (${t.pct.toFixed(1)}%) — ${t.title.slice(0, 36)}`)
+                  .join("<br/>")
+              : "Засуджених не зафіксовано";
+          hoverCard.innerHTML = `
+            <div style="font-weight:700; color:#38bdf8; font-size:13.5px; margin-bottom:3px;">
+              Дециль I_КЗОСН [${b.label}] • ${b.year} рік
+            </div>
+            <div style="color:#cbd5e1; font-size:11.5px; margin-bottom:6px;">${b.desc}</div>
+            <div style="margin-bottom:4px;">
+              🔼 <b>Частка заборон КК:</b> <b style="color:#38bdf8">${b.normPct.toFixed(1)}%</b> (${b.normCount} норм)
+            </div>
+            <div style="color:#f0abfc; margin-bottom:6px;">
+              🔽 <b>Частка засуджених:</b> <b>${b.convicPct.toFixed(1)}%</b> (${b.convicSum.toLocaleString("uk-UA")} осіб) | Інтенсивність: <b style="color:#fde047">${b.intensityRatio.toFixed(2)}×</b>
+            </div>
+            <div style="font-size:11px; color:#fde047; border-top:1px solid rgba(148,163,184,0.2); padding-top:5px;">
+              <b>Топ-норми дециля (${b.year}):</b><br/>${topStr}
+            </div>
+          `;
+        } else {
+          hoverCard.style.display = "none";
+        }
+      });
+
+      canvas2d.addEventListener("mouseleave", () => {
+        hoverCard.style.display = "none";
+      });
+
+      canvas2d.addEventListener("click", (e) => {
+        const rect = canvas2d.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (canvas2d.width / rect.width);
+        const my = (e.clientY - rect.top) * (canvas2d.height / rect.height);
+        const hit = hitBoxes2D.find((b) => mx >= b.x1 && mx <= b.x2 && my >= b.y1 && my <= b.y2);
+        if (hit) {
+          selectedBinIdx = hit.bin.idx;
+          selectedYear = hit.bin.year;
+          render2DCanvas();
+          render2DInspectorTable();
+        }
+      });
+
+      // UI Switching & Controls
+      function applyDimensionModeUI() {
+        const is2D = dimensionMode === "2d_poster";
+        document.body.classList.toggle("mode-2d", is2D);
+        view3dWrapper.style.display = is2D ? "none" : "flex";
+        view2dWrapper.style.display = is2D ? "flex" : "none";
+        document.getElementById("ctrl-3d-actions").style.display = is2D ? "none" : "flex";
+        document.getElementById("ctrl-3d-focus").style.display = is2D ? "none" : "flex";
+        document.getElementById("ctrl-2d-layout").style.display = is2D ? "flex" : "none";
+
+        if (is2D) {
+          render2DCanvas();
+          render2DInspectorTable();
+        } else {
+          onResize3D();
+          build3DScene();
+        }
+      }
+
+      dimensionModeSel.addEventListener("change", () => {
+        dimensionMode = dimensionModeSel.value;
+        applyDimensionModeUI();
+      });
+
+      flip3dBtn.addEventListener("click", () => {
+        isFlipped3D = !isFlipped3D;
+        targetFlipY = isFlipped3D ? -1.0 : 1.0;
+        flip3dBtn.classList.toggle("active", isFlipped3D);
+        const descEl = document.getElementById("hud3d-desc");
+        if (isFlipped3D) {
+          descEl.innerHTML =
+            "<b>Вгору (Y &gt; 0):</b> частка засуджених (% CONVIC ↑) — видно перехід від одного центрального хребта (2013–2019) до двох берегових хребтів (90–80 та 20–0 у 2022–2025)! <b>Вниз (Y &lt; 0):</b> частка заборон КК (% ↓).";
+        } else {
+          descEl.innerHTML =
+            "<b>Вгору (Y &gt; 0):</b> частка заборон КК (%) у кожному з 10 децилів I<sub>КЗОСН</sub> — стабільний лівий схил. <b>Вниз (Y &lt; 0):</b> частка засуджених (%) — розщеплення купола 2013 р. на два каньйони по краях (90–80 та 20–0)!";
+        }
+      });
+
+      reset3dBtn.addEventListener("click", () => {
+        lockedBinIdx = null;
+        hoveredBinIdx = null;
+        focusedYear3D = "ALL";
+        yearFocus3dSel.value = "ALL";
+        isFlipped3D = false;
+        targetFlipY = 1.0;
+        flip3dBtn.classList.remove("active");
+        updateDecilePillsUI();
+        camera.position.set(0, 115, 235);
+        controls.target.set(0, -4, -55);
+        controls.update();
+        apply3DHighlightState();
+      });
+
+      yearFocus3dSel.addEventListener("change", () => {
+        focusedYear3D = yearFocus3dSel.value;
+        if (focusedYear3D !== "ALL") {
+          selectedYear = focusedYear3D;
+          updateBottom3DDrawer();
+        }
+        apply3DHighlightState();
+      });
+
+      sectionFilterSel.addEventListener("change", () => {
+        rebuildMatrixData();
+        if (dimensionMode === "2d_poster") {
+          render2DCanvas();
+          render2DInspectorTable();
+        } else {
+          build3DScene();
+        }
+      });
+
+      layoutModeSel.addEventListener("change", () => {
+        render2DCanvas();
+      });
+
+      downloadBtn.addEventListener("click", () => {
+        const link = document.createElement("a");
+        if (dimensionMode === "2d_poster") {
+          link.download = `KZOSN_10_Deciles_2D_${layoutModeSel.value}.png`;
+          link.href = canvas2d.toDataURL("image/png", 1.0);
+        } else {
+          renderer.render(scene, camera);
+          link.download = `KZOSN_10_Deciles_3D_${dimensionMode}.png`;
+          link.href = canvas3d.toDataURL("image/png", 1.0);
+        }
+        link.click();
+      });
+
+      function onResize3D() {
+        const vp = document.getElementById("viewport3d");
+        const w = vp.clientWidth || window.innerWidth;
+        const h = vp.clientHeight || window.innerHeight - 340;
+        camera.aspect = w / Math.max(1, h);
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      }
+      window.addEventListener("resize", () => {
+        if (dimensionMode !== "2d_poster") onResize3D();
+      });
+
+      // Initialize
+      rebuildMatrixData();
+      onResize3D();
+      build3DScene();
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (dimensionMode !== "2d_poster") {
+          if (Math.abs(currentFlipY - targetFlipY) > 0.001) {
+            currentFlipY += (targetFlipY - currentFlipY) * 0.14;
+            if (Math.abs(currentFlipY) < 0.02) currentFlipY = targetFlipY > 0 ? 0.02 : -0.02;
+            flipRoot.scale.y = currentFlipY;
+          } else if (currentFlipY !== targetFlipY) {
+            currentFlipY = targetFlipY;
+            flipRoot.scale.y = currentFlipY;
+          }
+          controls.update();
+          renderer.render(scene, camera);
+        }
+      }
+      animate();
+    })();
+  </script>
+</body>
+</html>

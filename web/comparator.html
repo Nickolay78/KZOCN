@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Компаратор КЗОСН — Порівняння заборони з близькими за суворістю нормами (±0%, ±1%, ±3%, ±5%)</title>
+  <style>
+    :root {
+      --bg-page: #050811;
+      --panel-bg: #0c1322;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --border: rgba(148, 163, 184, 0.24);
+      --accent: #38bdf8;
+      --accent-purple: #e879f9;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --sev-1: #22c55e;
+      --sev-2: #eab308;
+      --sev-3: #f97316;
+      --sev-4: #ef4444;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg-page);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 48px;
+    }
+
+    /* Top Site Navigation Tabs */
+    .top-nav {
+      width: 100%;
+      background: #090e1a;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 7px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .nav-tab {
+      text-decoration: none;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 7px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      transition: all 0.15s;
+    }
+    .nav-tab:hover {
+      border-color: #38bdf8;
+      color: #fff;
+    }
+    .nav-tab.active {
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      color: #fff;
+      border-color: #7dd3fc;
+      box-shadow: 0 2px 12px rgba(56, 189, 248, 0.35);
+    }
+
+    /* Controls Toolbar */
+    .toolbar {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+    .ctrl.highlight {
+      border-color: rgba(56, 189, 248, 0.55);
+      background: rgba(12, 74, 110, 0.35);
+    }
+    .ctrl label {
+      color: var(--muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    select, input[type="text"], button {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      outline: none;
+    }
+    select:hover, input[type="text"]:focus, button:hover {
+      border-color: var(--accent);
+    }
+    .radius-btns {
+      display: flex;
+      gap: 4px;
+    }
+    .rad-btn {
+      cursor: pointer;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 5px;
+      background: #0f172a;
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      transition: all 0.15s;
+    }
+    .rad-btn:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .rad-btn.active {
+      background: var(--accent);
+      color: #090d16;
+      border-color: #fff;
+    }
+    button.btn-export {
+      background: linear-gradient(135deg, #0284c7, #7c3aed);
+      border-color: #38bdf8;
+      font-weight: 700;
+      padding: 6px 13px;
+      cursor: pointer;
+    }
+
+    /* Main Container */
+    .container {
+      margin-top: 16px;
+      width: min(96vw, 1580px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Top Row: Target Norm Card + Context Corridor Chart */
+    .top-grid {
+      display: grid;
+      grid-template-columns: 490px 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 1150px) {
+      .top-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 15px 18px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    }
+    .target-card {
+      border-color: rgba(56, 189, 248, 0.5);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .target-badge-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .target-pill {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 3px 10px;
+      border-radius: 6px;
+    }
+    .target-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .target-box {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 11.5px;
+      color: #cbd5e1;
+      line-height: 1.38;
+      max-height: 92px;
+      overflow-y: auto;
+    }
+    .target-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+    .tkpi {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 7px;
+      padding: 6px 8px;
+    }
+    .tkpi span {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .tkpi strong {
+      font-size: 13.5px;
+      color: #fff;
+    }
+
+    /* Right Chart Card: Distribution of Close Prohibitions across Sections I..XX */
+    .chart-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .chart-head h3 {
+      font-size: 14.5px;
+      color: #38bdf8;
+    }
+    .corridor-summary-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 11.5px;
+    }
+    .cs-pill {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+    #corridor-svg-wrap {
+      width: 100%;
+      height: 255px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    svg#corridor-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Comparison Table Card */
+    .table-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .table-header-bar h2 {
+      font-size: 16px;
+      color: #fff;
+    }
+    .table-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 9px;
+      max-height: 620px;
+      overflow-y: auto;
+    }
+    table.comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    table.comp-table th {
+      position: sticky;
+      top: 0;
+      background: #1e293b;
+      color: #cbd5e1;
+      text-align: left;
+      padding: 9px 10px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+      z-index: 10;
+      white-space: nowrap;
+    }
+    table.comp-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      color: #e2e8f0;
+      vertical-align: top;
+      line-height: 1.38;
+    }
+    table.comp-table tr {
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    table.comp-table tr:hover td {
+      background: rgba(56, 189, 248, 0.10);
+    }
+    table.comp-table tr.is-target-row td {
+      background: rgba(2, 132, 199, 0.24);
+      border-top: 1px solid #38bdf8;
+      border-bottom: 1px solid #38bdf8;
+    }
+    .delta-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .delta-exact {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.45);
+    }
+    .delta-plus {
+      background: rgba(249, 115, 22, 0.18);
+      color: #fb923c;
+      border: 1px solid rgba(249, 115, 22, 0.4);
+    }
+    .delta-minus {
+      background: rgba(56, 189, 248, 0.16);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <div class="nav-tabs">
+      <a href="index.html" class="nav-tab">🌐 Вкладка 1: 3D-Модель КК</a>
+      <a href="fb_post_2d.html" class="nav-tab">📊 Вкладка 2: 2D-Постер v1</a>
+      <a href="fb_post_v2.html" class="nav-tab">✨ Вкладка 3: 2D-Інфографіка v2</a>
+      <a href="deciles.html" class="nav-tab">🏛 Вкладка 4: 10 Децилів КЗОСН (3D + 2D)</a>
+      <a href="comparator.html" class="nav-tab active">⚖️ Вкладка 5: Компаратор близьких заборон (±1%, ±3%, ±5%)</a>
+    </div>
+    <div style="font-size:12px; color:#94a3b8;">
+      Системно-структурний аналіз адекватності пеналізації за методом «In Context»
+    </div>
+  </nav>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="ctrl">
+        <label for="edition-select">Редакція КК:</label>
+        <select id="edition-select"></select>
+      </div>
+
+      <div class="ctrl highlight">
+        <label for="norm-search" style="color:#7dd3fc;">Пошук заборони:</label>
+        <input type="text" id="norm-search" placeholder="напр. 185, 361, 111-1, крадіжка..." style="width: 195px;" />
+        <label for="norm-select" style="color:#7dd3fc;">Обрана норма:</label>
+        <select id="norm-select" style="max-width: 310px; font-weight:600;"></select>
+      </div>
+
+      <div class="ctrl highlight">
+        <label style="color:#fde047;">Межа близькості КЗОСН:</label>
+        <div class="radius-btns" id="radius-btns">
+          <button class="rad-btn" data-rad="0">Точний збіг (0%)</button>
+          <button class="rad-btn active" data-rad="1">± 1%</button>
+          <button class="rad-btn" data-rad="3">± 3%</button>
+          <button class="rad-btn" data-rad="5">± 5%</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-export" id="export-csv-btn">📥 Експортувати перелік у CSV (Excel)</button>
+  </div>
+
+  <div class="container">
+    <!-- Top Section: Selected Prohibition Card + Context Corridor Chart across Sections I..XX -->
+    <div class="top-grid">
+      <div class="card target-card">
+        <div>
+          <div class="target-badge-row">
+            <span class="target-pill" id="tc-label">ст. 185 ч. 4</span>
+            <span id="tc-section" style="font-size:12px; color:var(--muted); font-weight:600;">Розділ VI</span>
+          </div>
+          <div class="target-title" id="tc-title" style="margin-top:6px;">Крадіжка</div>
+        </div>
+
+        <div>
+          <div style="font-size:11px; color:#38bdf8; font-weight:600; margin-bottom:3px;">Санкція обраної заборони:</div>
+          <div class="target-box" id="tc-sanc"></div>
+          <div style="font-size:11px; color:var(--muted); font-weight:600; margin:6px 0 3px;">Диспозиція:</div>
+          <div class="target-box" id="tc-disp" style="max-height:68px; color:#94a3b8;"></div>
+        </div>
+
+        <div class="target-kpis">
+          <div class="tkpi">
+            <span>Індекс I<sub>КЗОСН</sub></span>
+            <strong id="tc-kzosn" style="color:#38bdf8;">—</strong>
+          </div>
+          <div class="tkpi">
+            <span>Ранг N<sub>i</sub> / N<sub>max</sub></span>
+            <strong id="tc-rank">—</strong>
+          </div>
+          <div class="tkpi">
+            <span>Тяжкість (ст. 12)</span>
+            <strong id="tc-sev">—</strong>
+          </div>
+          <div class="tkpi" style="border-color:rgba(232,121,249,0.4);">
+            <span style="color:#f0abfc;">Засуджено (CONVIC)</span>
+            <strong id="tc-convic" style="color:#f0abfc;">—</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-head">
+          <h3 id="corridor-chart-title">Розподіл близьких за суворістю заборон по розділах Особливої частини КК (I – XX)</h3>
+          <div class="corridor-summary-pills" id="corridor-pills"></div>
+        </div>
+        <div id="corridor-svg-wrap">
+          <svg id="corridor-svg" viewBox="0 0 960 255" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Section: Full Table of Close Prohibitions -->
+    <div class="card">
+      <div class="table-header-bar">
+        <h2 id="table-title">Перелік близьких заборон у межах ±1% Індексу КЗОСН</h2>
+        <div class="table-controls">
+          <label for="sec-scope-filter" style="color:var(--muted);">Охоплення розділів:</label>
+          <select id="sec-scope-filter">
+            <option value="ALL">Усі розділи КК (I – XX)</option>
+            <option value="OTHER_SECS">Тільки інші розділи КК (міжродове порівняння)</option>
+            <option value="SAME_SEC">Тільки той самий розділ КК</option>
+          </select>
+
+          <label for="sort-table-sel" style="color:var(--muted);">Сортування:</label>
+          <select id="sort-table-sel">
+            <option value="delta_asc">За близькістю КЗОСН (|Δ| від 0% до межі)</option>
+            <option value="convic_desc">За кількістю засуджених (CONVIC ↓)</option>
+            <option value="kzosn_desc">За спаданням I_КЗОСН</option>
+            <option value="code_asc">За порядком статей у КК</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Норма КК</th>
+              <th>Розділ</th>
+              <th>Назва статті</th>
+              <th>I<sub>КЗОСН</sub></th>
+              <th>Відхилення Δ</th>
+              <th>Ранг N<sub>i</sub>/N<sub>max</sub></th>
+              <th>Тяжкість</th>
+              <th>Засуджено (CONVIC)</th>
+              <th>Санкція норми (для порівняння конструкцій)</th>
+              <th>Диспозиція (коротко)</th>
+            </tr>
+          </thead>
+          <tbody id="comp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app_shell.js"></script>
+  <script>
+    (function () {
+      const DATA = window.KZOCN_DATA;
+      if (!DATA) {
+        alert("Помилка завантаження data.js!");
+        return;
+      }
+
+      const initShell = window.KZOSN_SHELL ? window.KZOSN_SHELL.getState() : {};
+      // State
+      let currentEdition = initShell.ed || "2025";
+      let targetNormKey = initShell.norm || "185|4";
+      let radiusPct = initShell.rad !== undefined ? Number(initShell.rad) : 1.0; // 0 | 1 | 3 | 5
+      let secScope = "ALL"; // 'ALL' | 'OTHER_SECS' | 'SAME_SEC'
+      let sortOrder = "delta_asc";
+      let currentMatches = [];
+
+      // DOM elements
+      const editionSelect = document.getElementById("edition-select");
+      const normSearchInput = document.getElementById("norm-search");
+      const normSelect = document.getElementById("norm-select");
+      const radiusBtns = document.querySelectorAll(".rad-btn");
+      const secScopeSel = document.getElementById("sec-scope-filter");
+      const sortTableSel = document.getElementById("sort-table-sel");
+      const exportCsvBtn = document.getElementById("export-csv-btn");
+
+      const SEV_LABELS = {
+        4: { text: "4 — Особливо тяжкий", color: "#ef4444" },
+        3: { text: "3 — Тяжкий", color: "#f97316" },
+        2: { text: "2 — Нетяжкий", color: "#eab308" },
+        1: { text: "1 — Проступок / нев. тяжк.", color: "#22c55e" },
+      };
+
+      // Populate Edition Selector
+      DATA.editions.forEach((ed) => {
+        const opt = document.createElement("option");
+        opt.value = ed.edition_id;
+        const lbl =
+          ed.edition_id === "2001_09_01"
+            ? "01.09.2001 (Перша редакція)"
+            : ed.edition_id === "current"
+            ? "2026 (Актуальна редакція)"
+            : `${ed.edition_id} рік (31.12.${ed.edition_id})`;
+        opt.textContent = `${lbl} — ${ed.total_parts} норм`;
+        if (ed.edition_id === currentEdition) opt.selected = true;
+        editionSelect.appendChild(opt);
+      });
+
+      // Populate Norm Selector for currentEdition (filtered by search input)
+      function populateNormSelect(filterQuery = "") {
+        const recs = DATA.byEdition[currentEdition] || [];
+        const q = filterQuery.trim().toLowerCase();
+
+        const filtered = recs.filter((r) => {
+          if (!q) return true;
+          const label = r[4].toLowerCase();
+          const art = r[1].toLowerCase();
+          const title = (DATA.titles[r[9]] || "").toLowerCase();
+          return art === q || label.includes(q) || title.includes(q);
+        });
+
+        normSelect.innerHTML = "";
+        filtered.forEach((r) => {
+          const key = `${r[1]}|${r[3]}`;
+          const opt = document.createElement("option");
+          opt.value = key;
+          const titleShort = (DATA.titles[r[9]] || "").slice(0, 48);
+          opt.textContent = `${r[4]} (КЗОСН=${r[5].toFixed(1)}) — ${titleShort}`;
+          if (key === targetNormKey) opt.selected = true;
+          normSelect.appendChild(opt);
+        });
+
+        // If targetNormKey wasn't in filtered list, select the first available item
+        if (filtered.length > 0 && !filtered.some((r) => `${r[1]}|${r[3]}` === targetNormKey)) {
+          targetNormKey = `${filtered[0][1]}|${filtered[0][3]}`;
+          normSelect.value = targetNormKey;
+        }
+      }
+
+      function updateComparison() {
+        const recs = DATA.byEdition[currentEdition] || [];
+        let targetRec = recs.find((r) => `${r[1]}|${r[3]}` === targetNormKey);
+        if (!targetRec && recs.length > 0) {
+          targetRec = recs[0];
+          targetNormKey = `${targetRec[1]}|${targetRec[3]}`;
+          normSelect.value = targetNormKey;
+        }
+        if (!targetRec) return;
+
+        const targetKzosn = targetRec[5];
+        const targetSec = targetRec[0];
+        const targetRank = targetRec[6];
+        const eps = 1e-5;
+
+        if (window.KZOSN_SHELL) {
+          window.KZOSN_SHELL.setState({
+            ed: currentEdition,
+            norm: targetNormKey,
+            sec: targetSec,
+            rad: radiusPct,
+          });
+        }
+
+        // 1. Update Target Card UI
+        document.getElementById("tc-label").textContent = targetRec[4];
+        document.getElementById("tc-section").textContent =
+          DATA.sections.find((s) => s.id === targetSec)?.title || `Розділ ${targetSec}`;
+        document.getElementById("tc-title").textContent = DATA.titles[targetRec[9]] || "";
+        document.getElementById("tc-sanc").textContent = DATA.sanctions[targetRec[11]] || "";
+        document.getElementById("tc-disp").textContent = DATA.dispositions[targetRec[10]] || "";
+
+        const sevInfo = SEV_LABELS[targetRec[8]] || { text: targetRec[8], color: "#38bdf8" };
+        document.getElementById("tc-kzosn").textContent = targetKzosn.toFixed(2);
+        document.getElementById("tc-kzosn").style.color = sevInfo.color;
+        document.getElementById("tc-rank").textContent = `${targetRec[6]} із ${targetRec[7]}`;
+        document.getElementById("tc-sev").textContent = sevInfo.text;
+        document.getElementById("tc-sev").style.color = sevInfo.color;
+
+        const tConv = targetRec[12];
+        document.getElementById("tc-convic").textContent =
+          tConv !== null && tConv !== undefined
+            ? `${tConv.toLocaleString("uk-UA")} ос.`
+            : currentEdition >= "2013" && currentEdition <= "2025"
+            ? "0 ос."
+            : "н/д";
+
+        // 2. Filter all prohibitions within radiusPct (0, 1, 3, 5)
+        const allInRadius = recs.filter((r) => {
+          const diff = Math.abs(r[5] - targetKzosn);
+          if (radiusPct === 0) {
+            return r[6] === targetRank || diff <= eps;
+          }
+          return diff <= radiusPct + eps;
+        });
+
+        // Apply section scope filter for the table
+        let scoped = allInRadius.filter((r) => {
+          if (secScope === "OTHER_SECS") return r[0] !== targetSec || `${r[1]}|${r[3]}` === targetNormKey;
+          if (secScope === "SAME_SEC") return r[0] === targetSec;
+          return true;
+        });
+
+        // Sort matches
+        scoped.sort((a, b) => {
+          const keyA = `${a[1]}|${a[3]}`;
+          const keyB = `${b[1]}|${b[3]}`;
+          // Always put the selected target norm at the very top row for immediate visual reference
+          if (keyA === targetNormKey) return -1;
+          if (keyB === targetNormKey) return 1;
+
+          const da = Math.abs(a[5] - targetKzosn);
+          const db = Math.abs(b[5] - targetKzosn);
+          if (sortOrder === "delta_asc") {
+            return da - db || (b[12] || 0) - (a[12] || 0) || a[2] - b[2] || a[3] - b[3];
+          } else if (sortOrder === "convic_desc") {
+            return (b[12] || 0) - (a[12] || 0) || da - db || a[2] - b[2];
+          } else if (sortOrder === "kzosn_desc") {
+            return b[5] - a[5] || (b[12] || 0) - (a[12] || 0);
+          } else {
+            return a[2] - b[2] || a[3] - b[3];
+          }
+        });
+
+        currentMatches = scoped;
+
+        // 3. Compute Corridor Summary Metrics
+        const exactCount = allInRadius.filter((r) => r[6] === targetRank).length;
+        const distinctSecs = new Set(allInRadius.map((r) => r[0])).size;
+        const totalConvInCorridor = allInRadius.reduce((acc, r) => acc + (r[12] || 0), 0);
+        const zeroConvInCorridor = allInRadius.filter((r) => !r[12] || r[12] === 0).length;
+
+        const loBound = Math.max(0, targetKzosn - radiusPct).toFixed(2);
+        const hiBound = Math.min(100, targetKzosn + radiusPct).toFixed(2);
+        const radText = radiusPct === 0 ? `Точний збіг (${targetKzosn.toFixed(2)})` : `±${radiusPct}% [${loBound} … ${hiBound}]`;
+
+        document.getElementById("corridor-chart-title").innerHTML =
+          `Контекстний коридор <b>${radText}</b> для <b>${targetRec[4]}</b> по розділах КК (I – XX)`;
+
+        document.getElementById("corridor-pills").innerHTML = `
+          <div class="cs-pill">Знайдено близьких норм: <b style="color:#38bdf8">${allInRadius.length}</b> (охоплено <b>${distinctSecs}</b> із 20 розділів КК)</div>
+          <div class="cs-pill">Ідентична суворість (ранг #${targetRank}): <b style="color:#4ade80">${exactCount} норм</b></div>
+          <div class="cs-pill">Засуджено у коридорі: <b style="color:#f0abfc">${totalConvInCorridor.toLocaleString("uk-UA")} осіб</b> (мертвих норм: <b style="color:#f87171">${zeroConvInCorridor}</b>)</div>
+        `;
+
+        document.getElementById("table-title").innerHTML =
+          `Перелік близьких заборон для <span style="color:#38bdf8">${targetRec[4]}</span> у межах <span style="color:#fde047">${radText}</span> — показано ${scoped.length} норм (клік на рядок робить норму еталонною)`;
+
+        // 4. Render Corridor Distribution SVG across Sections I..XX
+        renderCorridorSVG(allInRadius, targetRec);
+
+        // 5. Render Comparison Table
+        renderComparisonTable(scoped, targetRec, totalConvInCorridor);
+      }
+
+      function renderCorridorSVG(matches, targetRec) {
+        const svg = document.getElementById("corridor-svg");
+        const W = 960, H = 255;
+        const padL = 52, padR = 24, padT = 26, padB = 34;
+        const plotW = W - padL - padR, plotH = H - padT - padB;
+        const midY = padT + plotH * 0.48; // Upper half: count of close norms in section; Lower half: sum of CONVIC in section
+
+        // Aggregate matches by Section I..XX
+        const bySec = {};
+        DATA.sections.forEach((s) => {
+          bySec[s.id] = { count: 0, exact: 0, convic: 0, hasTarget: s.id === targetRec[0], norms: [] };
+        });
+        matches.forEach((r) => {
+          const st = bySec[r[0]];
+          if (!st) return;
+          st.count += 1;
+          if (r[6] === targetRec[6]) st.exact += 1;
+          st.convic += r[12] || 0;
+          st.norms.push(r);
+        });
+
+        const maxCount = Math.max(5, ...Object.values(bySec).map((s) => s.count));
+        const maxConv = Math.max(10, ...Object.values(bySec).map((s) => s.convic));
+
+        let html = "";
+
+        // Center horizontal axis line
+        html += `<line x1="${padL}" y1="${midY}" x2="${W - padR}" y2="${midY}" stroke="#94a3b8" stroke-width="1.5" />`;
+        html += `<text x="${padL - 8}" y="${padT + 10}" text-anchor="end" fill="#38bdf8" font-size="10.5" font-weight="700">Норм ↑</text>`;
+        html += `<text x="${padL - 8}" y="${H - padB - 4}" text-anchor="end" fill="#e879f9" font-size="10.5" font-weight="700">Засудж. ↓</text>`;
+
+        const slotW = plotW / DATA.sections.length;
+        const barW = slotW * 0.66;
+        const upMaxH = midY - padT - 16;
+        const downMaxH = padT + plotH - midY - 18;
+
+        DATA.sections.forEach((s, idx) => {
+          const st = bySec[s.id];
+          const cx = padL + (idx + 0.5) * slotW;
+          const bx = cx - barW / 2;
+
+          // Section Roman numeral at bottom
+          html += `<text x="${cx}" y="${H - 10}" text-anchor="middle" fill="${st.hasTarget ? "#fde047" : st.count > 0 ? "#e2e8f0" : "#64748b"}" font-weight="${st.hasTarget || st.count > 0 ? "700" : "400"}" font-size="11">${s.id}</text>`;
+
+          if (st.hasTarget) {
+            html += `<rect x="${padL + idx * slotW + 2}" y="${padT - 6}" width="${slotW - 4}" height="${plotH + 10}" rx="5" fill="rgba(253, 224, 71, 0.08)" stroke="rgba(253, 224, 71, 0.35)" stroke-dasharray="3,3" />`;
+          }
+
+          // Upper bar: number of close norms in this section
+          if (st.count > 0) {
+            const hUp = Math.max(4, (st.count / maxCount) * upMaxH);
+            const colUp = st.hasTarget ? "#fde047" : "#38bdf8";
+            html += `<rect x="${bx}" y="${midY - hUp}" width="${barW}" height="${hUp}" rx="3" fill="${colUp}" opacity="0.9">
+              <title>${s.title}: близьких норм у коридорі — ${st.count} (із них точних збігів — ${st.exact})</title>
+            </rect>`;
+            html += `<text x="${cx}" y="${midY - hUp - 5}" text-anchor="middle" fill="${colUp}" font-size="10.5" font-weight="700">${st.count}</text>`;
+          }
+
+          // Lower bar: number of convicted persons among close norms in this section
+          if (st.convic > 0) {
+            const hDown = Math.max(4, (Math.sqrt(st.convic) / Math.sqrt(maxConv)) * downMaxH);
+            html += `<rect x="${bx}" y="${midY + 2}" width="${barW}" height="${hDown}" rx="3" fill="#e879f9" opacity="0.88">
+              <title>${s.title}: засуджено за близькими нормами цього розділу — ${st.convic.toLocaleString("uk-UA")} осіб</title>
+            </rect>`;
+            html += `<text x="${cx}" y="${midY + hDown + 13}" text-anchor="middle" fill="#f0abfc" font-size="9.5" font-weight="600">${st.convic >= 1000 ? (st.convic / 1000).toFixed(1) + "k" : st.convic}</text>`;
+          }
+        });
+
+        svg.innerHTML = html;
+      }
+
+      function renderComparisonTable(rows, targetRec, totalConvInCorridor) {
+        const tbody = document.getElementById("comp-tbody");
+        const targetKzosn = targetRec[5];
+        const targetRank = targetRec[6];
+
+        tbody.innerHTML = rows
+          .map((r) => {
+            const key = `${r[1]}|${r[3]}`;
+            const isTarget = key === targetNormKey;
+            const diff = r[5] - targetKzosn;
+            let deltaBadge = "";
+            if (r[6] === targetRank || Math.abs(diff) < 1e-4) {
+              deltaBadge = `<span class="delta-badge delta-exact">= 0.00 (Точний)</span>`;
+            } else if (diff > 0) {
+              deltaBadge = `<span class="delta-badge delta-plus">+${diff.toFixed(2)}% (Суворіша)</span>`;
+            } else {
+              deltaBadge = `<span class="delta-badge delta-minus">${diff.toFixed(2)}% (М'якша)</span>`;
+            }
+
+            const sevInfo = SEV_LABELS[r[8]] || { text: r[8], color: "#cbd5e1" };
+            const conv = r[12];
+            const convStr =
+              conv !== null && conv !== undefined
+                ? `${conv.toLocaleString("uk-UA")}`
+                : currentEdition >= "2013" && currentEdition <= "2025"
+                ? "0"
+                : "—";
+            const shareInCorridor =
+              totalConvInCorridor > 0 && conv > 0
+                ? ` <span style="color:#94a3b8;font-weight:400;">(${((conv / totalConvInCorridor) * 100).toFixed(1)}%)</span>`
+                : "";
+
+            return `
+              <tr class="${isTarget ? "is-target-row" : ""}" data-key="${key}">
+                <td style="white-space:nowrap;">
+                  <b>${r[4]}</b>
+                  ${isTarget ? '<br/><span style="font-size:10px;color:#fde047;font-weight:700;">★ Обрана норма</span>' : ""}
+                </td>
+                <td style="white-space:nowrap;">Розділ ${r[0]}</td>
+                <td style="min-width:180px; font-weight:600;">${DATA.titles[r[9]] || ""}</td>
+                <td style="font-weight:800; color:${sevInfo.color}; font-size:13px;">${r[5].toFixed(2)}</td>
+                <td>${deltaBadge}</td>
+                <td style="white-space:nowrap; color:#94a3b8;">#${r[6]} / ${r[7]}</td>
+                <td style="white-space:nowrap; color:${sevInfo.color}; font-weight:600;">AS=${r[8]}</td>
+                <td style="white-space:nowrap; font-weight:700; color:${conv > 0 ? "#f0abfc" : "#64748b"};">
+                  ${convStr}${shareInCorridor}
+                </td>
+                <td style="min-width:280px; color:#cbd5e1; font-size:11.5px;">${DATA.sanctions[r[11]] || ""}</td>
+                <td style="min-width:240px; color:#94a3b8; font-size:11px;">${DATA.dispositions[r[10]] || ""}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        // Clicking any row selects that norm as the new target prohibition
+        tbody.querySelectorAll("tr[data-key]").forEach((tr) => {
+          tr.addEventListener("click", () => {
+            targetNormKey = tr.dataset.key;
+            populateNormSelect(normSearchInput.value);
+            normSelect.value = targetNormKey;
+            updateComparison();
+          });
+        });
+      }
+
+      // Event Listeners
+      editionSelect.addEventListener("change", () => {
+        currentEdition = editionSelect.value;
+        populateNormSelect(normSearchInput.value);
+        updateComparison();
+      });
+
+      normSearchInput.addEventListener("input", () => {
+        populateNormSelect(normSearchInput.value);
+        updateComparison();
+      });
+
+      normSelect.addEventListener("change", () => {
+        targetNormKey = normSelect.value;
+        updateComparison();
+      });
+
+      radiusBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          radiusBtns.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          radiusPct = Number(btn.dataset.rad);
+          updateComparison();
+        });
+      });
+
+      secScopeSel.addEventListener("change", () => {
+        secScope = secScopeSel.value;
+        updateComparison();
+      });
+
+      sortTableSel.addEventListener("change", () => {
+        sortOrder = sortTableSel.value;
+        updateComparison();
+      });
+
+      // CSV Export (UTF-8 with BOM so Microsoft Excel opens Ukrainian Cyrillic cleanly)
+      exportCsvBtn.addEventListener("click", () => {
+        const recs = DATA.byEdition[currentEdition] || [];
+        const targetRec = recs.find((r) => `${r[1]}|${r[3]}` === targetNormKey);
+        if (!targetRec || currentMatches.length === 0) return;
+
+        const targetKzosn = targetRec[5];
+        const headers = [
+          "Редакція",
+          "Розділ",
+          "Стаття",
+          "Частина",
+          "Позначення",
+          "Назва_статті",
+          "I_КЗОСН",
+          "Відхилення_від_обраної",
+          "Ранг_Ni",
+          "Унікальних_санкцій_Nmax",
+          "Тяжкість_ст12_AS",
+          "Засуджено_осіб_CONVIC",
+          "I_CONVIC",
+          "Санкція",
+          "Диспозиція"
+        ];
+
+        const escapeCsv = (val) => {
+          const s = String(val === null || val === undefined ? "" : val).replace(/"/g, '""');
+          return `"${s}"`;
+        };
+
+        const lines = [headers.map(escapeCsv).join(";")];
+        currentMatches.forEach((r) => {
+          const diff = (r[5] - targetKzosn).toFixed(2);
+          const row = [
+            currentEdition,
+            r[0],
+            r[1],
+            r[3],
+            r[4],
+            DATA.titles[r[9]] || "",
+            r[5].toFixed(2),
+            diff,
+            r[6],
+            r[7],
+            r[8],
+            r[12] !== null && r[12] !== undefined ? r[12] : "",
+            r[13] ? r[13].toFixed(2) : "0.00",
+            DATA.sanctions[r[11]] || "",
+            DATA.dispositions[r[10]] || "",
+          ];
+          lines.push(row.map(escapeCsv).join(";"));
+        });
+
+        const csvContent = "\uFEFF" + lines.join("\r\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `KZOSN_Close_Norms_${targetRec[1]}_p${targetRec[3]}_pm${radiusPct}pct_${currentEdition}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // Initialize
+      populateNormSelect("");
+      updateComparison();
+    })();
+  </script>
+</body>
+</html>

@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>In Context 3D — Законодавча оцінка суспільної небезпечності (КК України 2001–2026)</title>
+  <title>In Context 3D — Законодавча оцінка (КЗОСН ↑) та Судова практика (CONVIC ↓)</title>
   <style>
     :root {
       --bg-dark: #070b14;
-      --panel-bg: rgba(13, 20, 36, 0.88);
+      --panel-bg: rgba(13, 20, 36, 0.90);
       --panel-border: rgba(99, 145, 255, 0.25);
       --accent: #38bdf8;
+      --accent-convic: #e879f9;
       --accent-glow: #0284c7;
       --text-main: #f1f5f9;
       --text-muted: #94a3b8;
@@ -36,58 +37,65 @@
 
     /* Top Header & Controls */
     header {
-      height: 62px;
+      min-height: 64px;
       background: var(--panel-bg);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--panel-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 20px;
+      padding: 6px 16px;
       z-index: 20;
-      gap: 16px;
+      gap: 10px;
       flex-shrink: 0;
+      flex-wrap: wrap;
     }
     .brand {
       display: flex;
       flex-direction: column;
     }
     .brand h1 {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
       color: #fff;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
+      white-space: nowrap;
     }
     .brand h1 span.badge {
-      background: linear-gradient(135deg, #0ea5e9, #6366f1);
-      font-size: 11px;
-      padding: 2px 8px;
+      background: linear-gradient(135deg, #0ea5e9, #a855f7);
+      font-size: 10.5px;
+      padding: 2px 7px;
       border-radius: 99px;
       font-weight: 600;
     }
     .brand p {
-      font-size: 11.5px;
+      font-size: 11px;
       color: var(--text-muted);
+      white-space: nowrap;
     }
 
     .controls-bar {
       display: flex;
       align-items: center;
-      gap: 14px;
-      flex-wrap: nowrap;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .control-group {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(15, 23, 42, 0.75);
-      padding: 5px 11px;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.78);
+      padding: 4px 9px;
       border-radius: 8px;
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      font-size: 12.5px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      font-size: 11.5px;
+    }
+    .control-group.highlight-ctrl {
+      border-color: rgba(232, 121, 249, 0.45);
+      background: rgba(46, 16, 101, 0.35);
     }
     .control-group label {
       color: var(--text-muted);
@@ -99,8 +107,8 @@
       color: #f8fafc;
       border: 1px solid rgba(148, 163, 184, 0.3);
       border-radius: 6px;
-      padding: 4px 9px;
-      font-size: 12.5px;
+      padding: 4px 7px;
+      font-size: 11.5px;
       outline: none;
       transition: all 0.15s;
     }
@@ -113,6 +121,7 @@
       background: rgba(56, 189, 248, 0.15);
       border-color: rgba(56, 189, 248, 0.4);
       color: #e0f2fe;
+      white-space: nowrap;
     }
     button:hover {
       background: rgba(56, 189, 248, 0.3);
@@ -136,12 +145,12 @@
       display: block;
     }
 
-    /* Floating Section Strip & Legend */
+    /* Floating Section Strip */
     .section-pills {
       position: absolute;
-      top: 12px;
-      left: 16px;
-      right: 16px;
+      top: 10px;
+      left: 14px;
+      right: 14px;
       display: flex;
       gap: 5px;
       flex-wrap: wrap;
@@ -150,9 +159,9 @@
     }
     .sec-pill {
       padding: 4px 8px;
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 600;
-      background: rgba(15, 23, 42, 0.82);
+      background: rgba(15, 23, 42, 0.84);
       border: 1px solid rgba(148, 163, 184, 0.25);
       border-radius: 6px;
       color: #cbd5e1;
@@ -175,33 +184,56 @@
     /* Floating Info HUD (Top Left below pills) */
     .hud-box {
       position: absolute;
-      top: 52px;
-      left: 16px;
+      top: 46px;
+      left: 14px;
       background: var(--panel-bg);
       backdrop-filter: blur(10px);
       border: 1px solid var(--panel-border);
       border-radius: 10px;
-      padding: 12px 15px;
-      max-width: 420px;
+      padding: 10px 14px;
+      max-width: 510px;
       pointer-events: none;
       z-index: 10;
     }
     .hud-box h3 {
-      font-size: 13.5px;
+      font-size: 13px;
       color: var(--accent);
       margin-bottom: 4px;
     }
     .hud-box p {
-      font-size: 12px;
+      font-size: 11.5px;
       color: #cbd5e1;
-      line-height: 1.4;
+      line-height: 1.38;
+    }
+    .macro-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .kpi-mini {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 6px;
+      padding: 4px 6px;
+    }
+    .kpi-mini span {
+      display: block;
+      font-size: 9.5px;
+      color: var(--text-muted);
+    }
+    .kpi-mini strong {
+      font-size: 11.5px;
+      color: #fff;
     }
     .legend-row {
       display: flex;
-      gap: 10px;
-      margin-top: 8px;
+      gap: 9px;
+      margin-top: 7px;
       flex-wrap: wrap;
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--text-muted);
     }
     .legend-item {
@@ -220,14 +252,14 @@
     #tooltip {
       position: absolute;
       pointer-events: none;
-      background: rgba(10, 15, 29, 0.95);
+      background: rgba(10, 15, 29, 0.96);
       border: 1px solid var(--accent);
       border-radius: 8px;
       padding: 10px 12px;
       font-size: 12px;
       color: #f8fafc;
-      max-width: 340px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+      max-width: 375px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.72);
       display: none;
       z-index: 30;
     }
@@ -240,6 +272,16 @@
       color: var(--accent);
       margin-bottom: 4px;
       gap: 10px;
+    }
+    #tooltip .tt-convic {
+      font-size: 11.5px;
+      color: #f0abfc;
+      background: rgba(168, 85, 247, 0.14);
+      border: 1px solid rgba(232, 121, 249, 0.35);
+      border-radius: 5px;
+      padding: 4px 7px;
+      margin-bottom: 6px;
+      font-weight: 600;
     }
     #tooltip .tt-title {
       font-size: 11.5px;
@@ -255,72 +297,72 @@
       line-height: 1.35;
     }
 
-    /* Bottom Plane: Temporal Dynamics Drawer ("Під площиною") */
+    /* Bottom Plane: Temporal Dynamics Drawer */
     #bottom-dynamics {
-      height: 250px;
+      height: 255px;
       background: linear-gradient(180deg, rgba(11, 18, 34, 0.96) 0%, rgba(6, 10, 20, 0.99) 100%);
       border-top: 2px solid var(--accent);
       display: flex;
-      padding: 12px 20px;
-      gap: 20px;
+      padding: 10px 18px;
+      gap: 18px;
       z-index: 20;
       flex-shrink: 0;
-      transition: height 0.25s ease;
     }
     .dyn-left {
-      width: 380px;
+      width: 440px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       border-right: 1px solid rgba(148, 163, 184, 0.2);
-      padding-right: 18px;
+      padding-right: 16px;
       overflow-y: auto;
     }
     .dyn-left h2 {
-      font-size: 15px;
+      font-size: 14.5px;
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     .dyn-left .norm-title {
-      font-size: 12.5px;
+      font-size: 12px;
       color: var(--accent);
       font-weight: 600;
-      margin: 4px 0 6px;
+      margin: 2px 0 4px;
     }
     .dyn-left .norm-box {
-      font-size: 11.5px;
+      font-size: 11px;
       color: #cbd5e1;
       background: rgba(15, 23, 42, 0.7);
       border: 1px solid rgba(148, 163, 184, 0.18);
       border-radius: 6px;
-      padding: 7px 9px;
-      line-height: 1.38;
-      margin-bottom: 6px;
-      max-height: 82px;
+      padding: 5px 8px;
+      line-height: 1.34;
+      margin-bottom: 4px;
+      max-height: 64px;
       overflow-y: auto;
     }
     .dyn-stats {
-      display: flex;
-      gap: 10px;
-      font-size: 11.5px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      font-size: 11px;
     }
     .stat-card {
       background: rgba(30, 41, 59, 0.65);
       border-radius: 6px;
-      padding: 5px 9px;
-      flex: 1;
+      padding: 4px 7px;
       border: 1px solid rgba(148, 163, 184, 0.15);
     }
     .stat-card span {
       display: block;
-      font-size: 10.5px;
+      font-size: 9.8px;
       color: var(--text-muted);
+      white-space: nowrap;
     }
     .stat-card strong {
-      font-size: 13.5px;
+      font-size: 12px;
       color: #f8fafc;
     }
 
@@ -334,9 +376,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
-      font-size: 12px;
+      margin-bottom: 5px;
+      font-size: 11.5px;
       color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chart-tabs {
+      display: flex;
+      gap: 6px;
+    }
+    .chart-tab-btn {
+      padding: 3px 9px;
+      font-size: 11px;
+      border-radius: 5px;
     }
     #timeline-svg-wrap {
       flex: 1;
@@ -359,33 +412,62 @@
   <header>
     <div class="brand">
       <h1>
-        In Context 3D: Особлива частина КК України
+        In Context 3D: КК України (КЗОСН ↑ та Судимість CONVIC ↓)
         <span class="badge">2001 – 2026</span>
       </h1>
-      <p>Візуалізація індексів контекстної законодавчої оцінки суспільної небезпечності (I<sub>КЗОСН</sub>)</p>
+      <p>Вгору: суворість санкції (I<sub>КЗОСН</sub>) | Вниз: фактична судимість (CONVIC, 2013–2025)</p>
     </div>
 
     <div class="controls-bar">
       <div class="control-group">
-        <label for="edition-select">Редакція КК:</label>
+        <label for="edition-select">Рік:</label>
         <select id="edition-select"></select>
-        <button id="play-btn" title="Відтворити еволюцію КК з 2001 по 2026 рік">▶ Динаміка 2001→2026</button>
+        <button id="play-btn" title="Відтворити динаміку">▶ 2013→2025</button>
       </div>
 
-      <div class="control-group">
-        <label for="surface-mode">Форма 3D-візуалізації:</label>
-        <select id="surface-mode">
-          <option value="ribbon">Стрічковий 3D-рельєф розділів (поверхня)</option>
-          <option value="matrix">Матрична 3D-поверхня (Статті × Частини)</option>
-          <option value="bars_seq">3D-стовпчики (послідовно в глибину розділу)</option>
-          <option value="bars_matrix">3D-стовпчики (Статті × Частини рядами)</option>
+      <div class="control-group highlight-ctrl">
+        <label for="sort-mode" style="color:#7dd3fc;">Порядок у розділі:</label>
+        <select id="sort-mode">
+          <option value="kzosn_desc">За спаданням I_КЗОСН (плавний схил суворості)</option>
+          <option value="convic_desc">За спаданням засуджених CONVIC (епіцентри спереду)</option>
+          <option value="gap_desc">За розривом (суворі «мертві» → масові м'які)</option>
+          <option value="code">За номерами статей і частин у КК</option>
+        </select>
+      </div>
+
+      <div class="control-group highlight-ctrl">
+        <label for="convic-scale" style="color:#f0abfc;">Шкала CONVIC ↓:</label>
+        <select id="convic-scale">
+          <option value="log">Логарифмічна log₁₀(CONVIC+1) (реальні порядки)</option>
+          <option value="sqrt">Корінь √CONVIC (тектонічні центри репресії)</option>
+          <option value="rank">Рангова I_CONVIC (місце у списку 1..Mmax)</option>
+          <option value="off">Сховати нижні стовпчики</option>
+        </select>
+      </div>
+
+      <div class="control-group highlight-ctrl">
+        <label for="lens-mode" style="color:#fde047;">Фільтр трендів:</label>
+        <select id="lens-mode">
+          <option value="all">Усі норми КК (повна картина)</option>
+          <option value="core_top25">🔥 Ядро репресії: Топ-25 норм (~75% усіх засуджених)</option>
+          <option value="dead_giants">👻 Символічне право: I_КЗОСН ≥ 80, але ≤ 5 вироків</option>
+          <option value="mass_mild">⚖️ Масові нетяжкі: I_КЗОСН ≤ 50 та ≥ 100 вироків</option>
         </select>
       </div>
 
       <div class="control-group">
-        <label for="search-input">Пошук статті:</label>
-        <input type="text" id="search-input" placeholder="напр. 115, 185, 368..." style="width: 125px;" />
-        <button id="reset-cam-btn">Скинути камеру</button>
+        <label for="surface-mode">Вигляд:</label>
+        <select id="surface-mode">
+          <option value="bars_seq">3D-стовпчики (послідовно в глибину)</option>
+          <option value="bars_matrix">3D-стовпчики (Статті × Частини)</option>
+          <option value="ribbon">3D-поверхня + стовпчики CONVIC ↓</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <button id="flip-btn" title="Перегорнути модель відносно горизонтальної площини (поміняти місцями КЗОСН та CONVIC)">⇅ Змінити верх та низ</button>
+        <input type="text" id="search-input" placeholder="Стаття (185, 309...)" style="width: 110px;" />
+        <button id="reset-cam-btn">Скинути</button>
       </div>
     </div>
   </header>
@@ -396,62 +478,90 @@
     <div class="hud-box" id="hud-box">
       <h3 id="hud-sec-title">Усі розділи Особливої частини КК (I – XX)</h3>
       <p id="hud-sec-desc">
-        Наведіть курсор на будь-який розділ 3D-поверхні — він підсвітиться, а решта стануть прозорими (тільки контури). Натисніть на точку частини статті, щоб відкрити часову динаміку КЗОСН під площиною.
+        Норми впорядковано за спаданням суворості санкції (I<sub>КЗОСН</sub> ↑ утворює плавний схил). Унизу (Y &lt; 0) — фактичні вироки CONVIC ↓. Ви одразу бачите порожнечу під найсуворішими червоними вершинами та концентрацію вироків у помірно-тяжкому секторі.
       </p>
+      <div class="macro-kpis">
+        <div class="kpi-mini">
+          <span>Номінальний I<sub>КЗОСН</sub> КК</span>
+          <strong id="kpi-nom-kzosn" style="color:#38bdf8;">—</strong>
+        </div>
+        <div class="kpi-mini">
+          <span>Реальний (зваж. на вироки)</span>
+          <strong id="kpi-real-kzosn" style="color:#f0abfc;">—</strong>
+        </div>
+        <div class="kpi-mini">
+          <span>Мертві норми (0 вироків)</span>
+          <strong id="kpi-dead-share" style="color:#f87171;">—</strong>
+        </div>
+        <div class="kpi-mini">
+          <span>Концентрація у Топ-25 норм</span>
+          <strong id="kpi-top25-share" style="color:#fde047;">—</strong>
+        </div>
+      </div>
       <div class="legend-row">
         <div class="legend-item"><span class="dot" style="background: var(--sev-4)"></span> Особливо тяжкі (AS=4)</div>
         <div class="legend-item"><span class="dot" style="background: var(--sev-3)"></span> Тяжкі (AS=3)</div>
-        <div class="legend-item"><span class="dot" style="background: var(--sev-2)"></span> Нетяжкі / середньої тяжкості (AS=2)</div>
-        <div class="legend-item"><span class="dot" style="background: var(--sev-1)"></span> Проступки / невеликої тяжкості (AS=1)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--sev-2)"></span> Нетяжкі (AS=2)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--sev-1)"></span> Проступки (AS=1)</div>
+        <div class="legend-item"><span class="dot" style="background: linear-gradient(135deg, #38bdf8, #e879f9)"></span> Засуджені CONVIC ↓</div>
       </div>
     </div>
 
     <div id="tooltip">
       <div class="tt-header">
-        <span id="tt-label">ст. 115 ч. 1</span>
-        <span id="tt-index">I<sub>КЗОСН</sub> = 97.20</span>
+        <span id="tt-label">ст. 185 ч. 4</span>
+        <span id="tt-index">I<sub>КЗОСН</sub> = 80.20</span>
       </div>
-      <div class="tt-title" id="tt-title">Умисне вбивство</div>
-      <div class="tt-sanc" id="tt-sanc">карається позбавленням волі...</div>
+      <div class="tt-convic" id="tt-convic">Засуджено: 7 294 осіб | I<sub>CONVIC</sub> = 99.22 (#2/129)</div>
+      <div class="tt-title" id="tt-title">Крадіжка</div>
+      <div class="tt-sanc" id="tt-sanc">карається...</div>
     </div>
 
     <canvas id="canvas3d"></canvas>
   </div>
 
-  <!-- Bottom panel ("Під площиною"): Temporal dynamics of selected article part -->
+  <!-- Bottom panel: Temporal dynamics of selected article part OR Macro Trends -->
   <section id="bottom-dynamics">
     <div class="dyn-left">
       <div>
         <h2>
-          <span id="dyn-norm-label">ст. 115 ч. 1</span>
-          <span id="dyn-norm-sec" style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Розділ II</span>
+          <span id="dyn-norm-label">ст. 185 ч. 4</span>
+          <span id="dyn-norm-sec" style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Розділ VI</span>
         </h2>
-        <div class="norm-title" id="dyn-norm-title">Умисне вбивство</div>
-        <div class="norm-box" id="dyn-norm-sanc">Натисніть на будь-яку вершину 3D-поверхні для перегляду санкції та динаміки КЗОСН за 2001–2026 рр.</div>
-        <div class="norm-box" id="dyn-norm-disp" style="color: #94a3b8; font-size: 11px;"></div>
+        <div class="norm-title" id="dyn-norm-title">Крадіжка</div>
+        <div class="norm-box" id="dyn-norm-sanc">Натисніть на будь-який стовпчик для перегляду санкції та порівняльної динаміки I<sub>КЗОСН</sub> і CONVIC.</div>
+        <div class="norm-box" id="dyn-norm-disp" style="color: #94a3b8; font-size: 10.5px;"></div>
       </div>
       <div class="dyn-stats">
         <div class="stat-card">
-          <span>Індекс I<sub>КЗОСН</sub></span>
+          <span>I<sub>КЗОСН</sub> (санкція ↑)</span>
           <strong id="dyn-stat-idx">—</strong>
         </div>
         <div class="stat-card">
-          <span>Місце в рейтингу (N<sub>i</sub> / N<sub>max</sub>)</span>
+          <span>Ранг санкції N<sub>i</sub>/N<sub>max</sub></span>
           <strong id="dyn-stat-rank">—</strong>
         </div>
-        <div class="stat-card">
-          <span>Діапазон за 2001–2026</span>
-          <strong id="dyn-stat-delta">—</strong>
+        <div class="stat-card" style="border-color: rgba(232,121,249,0.35);">
+          <span style="color:#f0abfc;">I<sub>CONVIC</sub> (ранг ↓)</span>
+          <strong id="dyn-stat-convic-idx" style="color:#f0abfc;">—</strong>
+        </div>
+        <div class="stat-card" style="border-color: rgba(232,121,249,0.35);">
+          <span style="color:#f0abfc;">Засуджено (CONVIC)</span>
+          <strong id="dyn-stat-convic-cnt" style="color:#f8fafc;">—</strong>
         </div>
       </div>
     </div>
 
     <div class="dyn-right">
       <div class="chart-header">
-        <span><strong>Часова динаміка Індексу КЗОСН обраної норми (2001 – 2026 рр.)</strong></span>
-        <span>
-          <span style="color:#38bdf8">● Контекстна зміна індексу</span> &nbsp;|&nbsp;
-          <span style="color:#f43f5e">◆ Пряма зміна санкції статті законом</span>
+        <div class="chart-tabs">
+          <button id="tab-norm-btn" class="chart-tab-btn active">📈 Динаміка обраної норми (2001–2026)</button>
+          <button id="tab-macro-btn" class="chart-tab-btn">📊 Макротренди КК: «Ножиці суворості» та зсув ст. 185 (2013–2025)</button>
+        </div>
+        <span id="chart-legend-span">
+          <span style="color:#38bdf8">━●━ I<sub>КЗОСН</sub> (санкція)</span> &nbsp;|&nbsp;
+          <span style="color:#e879f9">━■━ I<sub>CONVIC</sub> (місце за засудженими, число = осіб)</span> &nbsp;|&nbsp;
+          <span style="color:#f43f5e">◆ Зміна санкції</span>
         </span>
       </div>
       <div id="timeline-svg-wrap">
@@ -460,8 +570,9 @@
     </div>
   </section>
 
-  <!-- Load Data Bundle and Three.js -->
+  <!-- Load Data Bundle, App Shell, and Three.js -->
   <script src="data.js"></script>
+  <script src="app_shell.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -473,41 +584,95 @@
         return;
       }
 
-      // State
-      let currentEdition = "current";
-      let surfaceMode = "ribbon"; // 'ribbon' | 'matrix' | 'bars_seq' | 'bars_matrix'
+      const initShell = window.KZOSN_SHELL ? window.KZOSN_SHELL.getState() : {};
+      // State: default to 2025, sorted by KZOSN descending (smooth severity slope!), log scale for CONVIC
+      let currentEdition = initShell.ed || "2025";
+      let sortMode = "kzosn_desc"; // 'kzosn_desc' | 'convic_desc' | 'gap_desc' | 'code'
+      let convicScale = "log";     // 'log' | 'sqrt' | 'rank' | 'off'
+      let lensMode = "all";        // 'all' | 'core_top25' | 'dead_giants' | 'mass_mild'
+      let surfaceMode = "bars_seq";
+      let bottomChartMode = "norm"; // 'norm' | 'macro'
+      let isFlipped = false;
+      let currentFlipY = 1.0;
+      let targetFlipY = 1.0;
       let hoveredSection = null;
-      let lockedSection = null;
+      let lockedSection = initShell.sec && initShell.sec !== "ALL" ? initShell.sec : null;
       let hoveredArticle = null;
-      let selectedNormKey = "115|1";
+      let hoveredNormKey = null;
+      let selectedNormKey = initShell.norm || "185|4";
       let playTimer = null;
 
       // DOM elements
       const editionSelect = document.getElementById("edition-select");
+      const sortModeSelect = document.getElementById("sort-mode");
+      const convicScaleSelect = document.getElementById("convic-scale");
+      const lensModeSelect = document.getElementById("lens-mode");
       const surfaceModeSelect = document.getElementById("surface-mode");
       const playBtn = document.getElementById("play-btn");
+      const flipBtn = document.getElementById("flip-btn");
       const searchInput = document.getElementById("search-input");
       const resetCamBtn = document.getElementById("reset-cam-btn");
       const pillsContainer = document.getElementById("section-pills");
       const hudSecTitle = document.getElementById("hud-sec-title");
       const hudSecDesc = document.getElementById("hud-sec-desc");
       const tooltip = document.getElementById("tooltip");
+      const tabNormBtn = document.getElementById("tab-norm-btn");
+      const tabMacroBtn = document.getElementById("tab-macro-btn");
+      const chartLegendSpan = document.getElementById("chart-legend-span");
+
+      // Precompute annual macro stats for 2013..2025 for the Macro Trends chart & HUD KPIs
+      const macroByEdition = {};
+      DATA.editions.forEach((ed) => {
+        const eid = ed.edition_id;
+        const recs = DATA.byEdition[eid] || [];
+        const totalParts = recs.length;
+        const nomKzosn = totalParts > 0 ? recs.reduce((a, r) => a + r[5], 0) / totalParts : 0;
+        const withConvic = recs.filter((r) => (r[12] || 0) > 0);
+        const deadCount = totalParts - withConvic.length;
+        const totalConvic = recs.reduce((a, r) => a + (r[12] || 0), 0);
+        const weightedKzosn =
+          totalConvic > 0 ? recs.reduce((a, r) => a + r[5] * (r[12] || 0), 0) / totalConvic : null;
+
+        const sortedByConvic = [...recs].sort((a, b) => (b[12] || 0) - (a[12] || 0));
+        const top25Set = new Set(sortedByConvic.slice(0, 25).filter((r) => (r[12] || 0) > 0).map((r) => `${r[1]}|${r[3]}`));
+        const top25Sum = sortedByConvic.slice(0, 25).reduce((a, r) => a + (r[12] || 0), 0);
+        const maxConvic = sortedByConvic.length > 0 ? sortedByConvic[0][12] || 0 : 0;
+
+        macroByEdition[eid] = {
+          totalParts,
+          nomKzosn,
+          weightedKzosn,
+          deadCount,
+          deadShare: totalParts > 0 ? (deadCount / totalParts) * 100 : 0,
+          totalConvic,
+          top25Set,
+          top25Share: totalConvic > 0 ? (top25Sum / totalConvic) * 100 : 0,
+          maxConvic,
+        };
+      });
 
       // Populate Edition Selector
       DATA.editions.forEach((ed) => {
         const opt = document.createElement("option");
         opt.value = ed.edition_id;
-        opt.textContent = `${ed.edition_id === "2001_09_01" ? "01.09.2001 (Перша)" : ed.edition_id === "current" ? "2026 (Актуальна)" : ed.edition_id + " (31.12." + ed.edition_id + ")"} — ${ed.total_parts} норм (Nmax=${ed.unique_sanctions_n_max})`;
+        const labelBase =
+          ed.edition_id === "2001_09_01"
+            ? "01.09.2001 (Перша)"
+            : ed.edition_id === "current"
+            ? "2026 (Актуальна)"
+            : `${ed.edition_id}`;
+        const convicTag = ed.convic_total_persons
+          ? ` — ${ed.convic_total_persons.toLocaleString("uk-UA")} засудж.`
+          : ` — ${ed.total_parts} норм`;
+        opt.textContent = `${labelBase}${convicTag}`;
         if (ed.edition_id === currentEdition) opt.selected = true;
         editionSelect.appendChild(opt);
       });
 
       // Populate Section Pills (I..XX)
       const secTitleMap = {};
-      const secIndexMap = {};
-      DATA.sections.forEach((s, i) => {
+      DATA.sections.forEach((s) => {
         secTitleMap[s.id] = s.title;
-        secIndexMap[s.id] = i;
         const pill = document.createElement("div");
         pill.className = "sec-pill";
         pill.dataset.sec = s.id;
@@ -540,13 +705,19 @@
         });
       }
 
-      // Color helper by Severity (AS) and KZOSN index
+      // Color helpers
       function getSeverityColor(sev, kzosn) {
         const t = Math.max(0, Math.min(1, kzosn / 100));
         if (sev === 4) return new THREE.Color().setHSL(0.98 - t * 0.03, 0.9, 0.52);
         if (sev === 3) return new THREE.Color().setHSL(0.07, 0.92, 0.52);
         if (sev === 2) return new THREE.Color().setHSL(0.14, 0.90, 0.50);
         return new THREE.Color().setHSL(0.38, 0.80, 0.46);
+      }
+
+      function getConvicColor(scaled0to100) {
+        const t = Math.max(0, Math.min(1, scaled0to100 / 100));
+        // HSL: deep cyan-blue (0.56) -> bright violet (0.76) -> vivid magenta-pink (0.88)
+        return new THREE.Color().setHSL(0.56 + t * 0.32, 0.90, 0.44 + t * 0.16);
       }
 
       function getSeverityHex(sev) {
@@ -556,6 +727,43 @@
         return "#22c55e";
       }
 
+      // Compute scaled downward bar value (0..100) according to selected convicScale
+      function computeConvicVisualHeight0to100(item, edId) {
+        if (convicScale === "off") return 0;
+        const convicCnt = item[12] || 0;
+        const idxConvic = item[13] || 0;
+        if (convicCnt <= 0) return 0;
+
+        const maxC = (macroByEdition[edId] && macroByEdition[edId].maxConvic) || 15000;
+        if (convicScale === "rank") {
+          return idxConvic;
+        } else if (convicScale === "sqrt") {
+          return Math.min(100, Math.sqrt(convicCnt / maxC) * 100);
+        } else {
+          // 'log': log10(convic + 1) / log10(maxC + 1) * 100
+          return Math.min(100, (Math.log10(convicCnt + 1) / Math.log10(maxC + 1)) * 100);
+        }
+      }
+
+      // Check if an item passes the analytical trend filter (lensMode)
+      function passesLensFilter(item, edId) {
+        if (lensMode === "all") return true;
+        const normKey = `${item[1]}|${item[3]}`;
+        const kzosn = item[5];
+        const convicCnt = item[12] || 0;
+        if (lensMode === "core_top25") {
+          const topSet = macroByEdition[edId] ? macroByEdition[edId].top25Set : new Set();
+          return topSet.has(normKey);
+        }
+        if (lensMode === "dead_giants") {
+          return kzosn >= 80 && convicCnt <= 5;
+        }
+        if (lensMode === "mass_mild") {
+          return kzosn <= 50 && convicCnt >= 100;
+        }
+        return true;
+      }
+
       // Initialize Three.js Scene
       const canvas = document.getElementById("canvas3d");
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
@@ -563,61 +771,68 @@
 
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x070b14);
-      scene.fog = new THREE.FogExp2(0x070b14, 0.0012);
+      scene.fog = new THREE.FogExp2(0x070b14, 0.0011);
 
-      const camera = new THREE.PerspectiveCamera(45, 1, 1, 3000);
-      camera.position.set(0, 125, 290);
+      const camera = new THREE.PerspectiveCamera(45, 1, 1, 3200);
+      camera.position.set(0, 95, 315);
 
       const controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, 20, -60);
+      controls.target.set(0, 0, -65);
       controls.enableDamping = true;
       controls.dampingFactor = 0.06;
-      controls.maxDistance = 900;
-      controls.minDistance = 30;
+      controls.maxDistance = 1000;
+      controls.minDistance = 25;
       controls.update();
 
       // Lighting
-      const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.68);
+      const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.72);
       scene.add(ambientLight);
 
-      const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.85);
-      dirLight1.position.set(150, 300, 200);
-      scene.add(dirLight1);
+      const dirLightTop = new THREE.DirectionalLight(0xffffff, 0.85);
+      dirLightTop.position.set(150, 300, 200);
+      scene.add(dirLightTop);
 
-      const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.45);
-      dirLight2.position.set(-180, -120, -150);
-      scene.add(dirLight2);
+      const dirLightBottom = new THREE.DirectionalLight(0xe879f9, 0.65);
+      dirLightBottom.position.set(-150, -280, 160);
+      scene.add(dirLightBottom);
 
       // Base reference plane (Y = 0)
-      const gridHelper = new THREE.GridHelper(640, 40, 0x1e3a8a, 0x0f172a);
-      gridHelper.position.set(0, -0.2, -90);
+      const gridHelper = new THREE.GridHelper(640, 40, 0x38bdf8, 0x1e293b);
+      gridHelper.position.set(0, 0, -90);
       scene.add(gridHelper);
 
-      // Groups
       const sectionsRoot = new THREE.Group();
       scene.add(sectionsRoot);
 
-      const subPlaneRoot = new THREE.Group(); // Under-plane (Y < 0) 3D temporal dynamics projection
+      const labelsRoot = new THREE.Group();
+      scene.add(labelsRoot);
+
+      const subPlaneRoot = new THREE.Group();
       scene.add(subPlaneRoot);
 
-      // Data structures for raycasting and section highlighting
-      let sectionObjects = {}; // secId -> { surfaceMesh, wireMesh, nodesMesh, labelSprite, items, count, avgIdx }
-      let interactiveNodes = []; // Meshes for raycasting parts
-      let selectedMarkerMesh = null;
+      let sectionObjects = {};
+      let interactiveNodes = [];
 
-      // Layout constants
-      // X-axis: 20 sections with wide gaps between them
-      const SEC_SPACING_X = 24.0;      // Generous horizontal spacing between sections
-      const SEC_SURFACE_WIDTH = 11.5;  // Width of each section's 3D surface strip (leaving 12.5 units of clean gap!)
-      const HEIGHT_SCALE = 0.95;       // 0..100 KZOSN -> 0..95 Y units
-      const DEPTH_STEP_Z = 2.4;        // Step into depth (-Z) for parts/articles in sequence
+      const SEC_SPACING_X = 24.0;
+      const SEC_SURFACE_WIDTH = 11.5;
+      const HEIGHT_SCALE = 0.92;
+      const DEPTH_STEP_Z = 2.4;
 
-      // Helper to create text sprite in 3D space
+      const upBoxGeo = new THREE.BoxGeometry(1, 1, 1);
+      upBoxGeo.translate(0, 0.5, 0);
+      const upEdgesGeo = new THREE.EdgesGeometry(upBoxGeo);
+
+      const downBoxGeo = new THREE.BoxGeometry(1, 1, 1);
+      downBoxGeo.translate(0, -0.5, 0);
+      const downEdgesGeo = new THREE.EdgesGeometry(downBoxGeo);
+
+      const nodeGeo = new THREE.SphereGeometry(0.95, 12, 12);
+
       function makeTextSprite(text, opts = {}) {
         const fontSize = opts.fontSize || 34;
         const fg = opts.color || "#e0f2fe";
-        const bg = opts.bg || "rgba(15, 23, 42, 0.85)";
-        const border = opts.border || "rgba(56, 189, 248, 0.5)";
+        const bg = opts.bg || "rgba(15, 23, 42, 0.88)";
+        const border = opts.border || "rgba(56, 189, 248, 0.55)";
 
         const c = document.createElement("canvas");
         const ctx = c.getContext("2d");
@@ -650,15 +865,99 @@
         return sprite;
       }
 
-      // Build the 3D surface for the chosen edition
+      // Sort items within a section according to sortMode
+      function sortSectionItems(items) {
+        const arr = [...items];
+        if (sortMode === "kzosn_desc") {
+          arr.sort((a, b) => b[5] - a[5] || (b[12] || 0) - (a[12] || 0) || a[2] - b[2] || a[3] - b[3]);
+        } else if (sortMode === "convic_desc") {
+          arr.sort((a, b) => (b[12] || 0) - (a[12] || 0) || b[5] - a[5] || a[2] - b[2] || a[3] - b[3]);
+        } else if (sortMode === "gap_desc") {
+          arr.sort((a, b) => (b[5] - (b[13] || 0)) - (a[5] - (a[13] || 0)) || b[5] - a[5]);
+        } else {
+          arr.sort((a, b) => a[2] - b[2] || a[3] - b[3]);
+        }
+        return arr;
+      }
+
+      function addDownwardConvicBar(it, edId, secId, x, z, w, d, nodesGroup, barsWireGroup) {
+        const scaledVal = computeConvicVisualHeight0to100(it, edId);
+        if (scaledVal <= 0) return;
+
+        const normKey = `${it[1]}|${it[3]}`;
+        const hDown = Math.max(0.8, scaledVal * HEIGHT_SCALE);
+        const colDown = getConvicColor(scaledVal);
+        const lensMatch = passesLensFilter(it, edId);
+
+        const downMat = new THREE.MeshStandardMaterial({
+          color: colDown,
+          roughness: 0.28,
+          metalness: 0.18,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.94,
+        });
+        const downMesh = new THREE.Mesh(downBoxGeo, downMat);
+        downMesh.position.set(x, -0.05, z);
+        downMesh.scale.set(w, hDown, d);
+        downMesh.userData = {
+          secId,
+          articleStr: it[1],
+          normKey,
+          item: it,
+          isBar: true,
+          isDownBar: true,
+          lensMatch,
+          topY: -hDown,
+        };
+        nodesGroup.add(downMesh);
+        interactiveNodes.push(downMesh);
+
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: 0xe879f9,
+          transparent: true,
+          opacity: 0.38,
+        });
+        const edgeLine = new THREE.LineSegments(downEdgesGeo, edgeMat);
+        edgeLine.position.set(x, -0.05, z);
+        edgeLine.scale.set(w, hDown, d);
+        edgeLine.userData = {
+          secId,
+          articleStr: it[1],
+          normKey,
+          isDown: true,
+          lensMatch,
+        };
+        barsWireGroup.add(edgeLine);
+      }
+
+      function updateMacroKPIsUI(edId) {
+        const m = macroByEdition[edId];
+        if (!m) return;
+        document.getElementById("kpi-nom-kzosn").textContent = m.nomKzosn.toFixed(2);
+        if (m.weightedKzosn !== null) {
+          const diff = (m.weightedKzosn - m.nomKzosn).toFixed(1);
+          document.getElementById("kpi-real-kzosn").textContent = `${m.weightedKzosn.toFixed(2)} (${diff})`;
+          document.getElementById("kpi-dead-share").textContent = `${m.deadCount}/${m.totalParts} (${m.deadShare.toFixed(1)}%)`;
+          document.getElementById("kpi-top25-share").textContent = `${m.top25Share.toFixed(1)}% вироків`;
+        } else {
+          document.getElementById("kpi-real-kzosn").textContent = "н/д (до 2013 / 2026)";
+          document.getElementById("kpi-dead-share").textContent = "—";
+          document.getElementById("kpi-top25-share").textContent = "—";
+        }
+      }
+
       function buildSceneForEdition(edId) {
-        // Clear old meshes
         while (sectionsRoot.children.length > 0) {
-          const obj = sectionsRoot.children[0];
-          sectionsRoot.remove(obj);
+          sectionsRoot.remove(sectionsRoot.children[0]);
+        }
+        while (labelsRoot.children.length > 0) {
+          labelsRoot.remove(labelsRoot.children[0]);
         }
         sectionObjects = {};
         interactiveNodes = [];
+
+        updateMacroKPIsUI(edId);
 
         const records = DATA.byEdition[edId] || [];
         const bySec = {};
@@ -670,12 +969,9 @@
         const totalSecs = DATA.sections.length;
         const startX = -((totalSecs - 1) * SEC_SPACING_X) / 2;
 
-        // Shared sphere geometry for interactive article-part nodes
-        const nodeGeo = new THREE.SphereGeometry(0.95, 12, 12);
-
         DATA.sections.forEach((secMeta, sIdx) => {
           const secId = secMeta.id;
-          const items = bySec[secId];
+          const items = sortSectionItems(bySec[secId]);
           const centerX = startX + sIdx * SEC_SPACING_X;
 
           const secGroup = new THREE.Group();
@@ -684,7 +980,6 @@
 
           if (items.length === 0) return;
 
-          // Build 3D geometry for this section (Surface OR 3D Columns)
           const isBarsMode = surfaceMode === "bars_seq" || surfaceMode === "bars_matrix";
           let surfaceMesh = null;
           let wireMesh = null;
@@ -694,161 +989,95 @@
           secGroup.add(barsWireGroup);
 
           if (!isBarsMode) {
-            let surfaceGeo;
+            const N = items.length;
+            const cols = 5;
+            const positions = [];
+            const colors = [];
+            const indices = [];
             const nodePositions = [];
 
-            if (surfaceMode === "ribbon") {
-              // Mode 1: Sequential 3D Surface Ribbon
-              const N = items.length;
-              const cols = 5;
-              const positions = [];
-              const colors = [];
-              const indices = [];
+            const halfW = SEC_SURFACE_WIDTH / 2;
+            const xOffsets = [-halfW, -halfW * 0.85, 0, halfW * 0.85, halfW];
 
-              const halfW = SEC_SURFACE_WIDTH / 2;
-              const xOffsets = [-halfW, -halfW * 0.85, 0, halfW * 0.85, halfW];
+            for (let i = 0; i < N; i++) {
+              const item = items[i];
+              const kzosn = item[5];
+              const sev = item[8];
+              const z = -i * DEPTH_STEP_Z;
+              const yTop = Math.max(0.8, kzosn * HEIGHT_SCALE);
+              const colTop = getSeverityColor(sev, kzosn);
+              const colBase = colTop.clone().multiplyScalar(0.28);
 
-              for (let i = 0; i < N; i++) {
-                const item = items[i];
-                const kzosn = item[5];
-                const sev = item[8];
-                const z = -i * DEPTH_STEP_Z;
-                const yTop = Math.max(0.8, kzosn * HEIGHT_SCALE);
-                const colTop = getSeverityColor(sev, kzosn);
-                const colBase = colTop.clone().multiplyScalar(0.28);
-
-                nodePositions.push({ x: centerX, y: yTop + 0.4, z, item });
-
-                for (let c = 0; c < cols; c++) {
-                  const vx = centerX + xOffsets[c];
-                  let vy = 0;
-                  let vcol = colBase;
-                  if (c === 1 || c === 3) {
-                    vy = yTop * 0.94;
-                    vcol = colTop.clone().multiplyScalar(0.88);
-                  } else if (c === 2) {
-                    vy = yTop;
-                    vcol = colTop;
-                  }
-                  positions.push(vx, vy, z);
-                  colors.push(vcol.r, vcol.g, vcol.b);
-                }
-
-                if (i < N - 1) {
-                  const rowA = i * cols;
-                  const rowB = (i + 1) * cols;
-                  for (let c = 0; c < cols - 1; c++) {
-                    const a = rowA + c;
-                    const b = rowA + c + 1;
-                    const d = rowB + c;
-                    const e = rowB + c + 1;
-                    indices.push(a, d, b);
-                    indices.push(b, d, e);
-                  }
-                }
-              }
-
-              surfaceGeo = new THREE.BufferGeometry();
-              surfaceGeo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-              surfaceGeo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-              surfaceGeo.setIndex(indices);
-              surfaceGeo.computeVertexNormals();
-            } else {
-              // Mode 2: Matrix 3D Surface (Articles in depth Z × Parts 1..5 across section width X)
-              const byArt = [];
-              const artMap = {};
-              items.forEach((it) => {
-                const aStr = it[1];
-                if (!(aStr in artMap)) {
-                  artMap[aStr] = byArt.length;
-                  byArt.push({ art: aStr, parts: {} });
-                }
-                byArt[artMap[aStr]].parts[it[3]] = it;
+              nodePositions.push({
+                x: centerX,
+                y: yTop + 0.4,
+                z,
+                w: SEC_SURFACE_WIDTH * 0.68,
+                d: DEPTH_STEP_Z * 0.72,
+                item,
               });
 
-              const maxParts = 5;
-              const N = byArt.length;
-              const cols = maxParts + 2;
-              const positions = [];
-              const colors = [];
-              const indices = [];
-
-              for (let i = 0; i < N; i++) {
-                const rowObj = byArt[i];
-                const z = -i * (DEPTH_STEP_Z * 2.2);
-                const presentParts = Object.values(rowObj.parts);
-                const lastItem = presentParts[presentParts.length - 1];
-
-                for (let c = 0; c < cols; c++) {
-                  const frac = c / (cols - 1) - 0.5;
-                  const vx = centerX + frac * SEC_SURFACE_WIDTH;
-
-                  if (c === 0 || c === cols - 1) {
-                    const colB = getSeverityColor(lastItem[8], lastItem[5]).multiplyScalar(0.25);
-                    positions.push(vx, 0, z);
-                    colors.push(colB.r, colB.g, colB.b);
-                  } else {
-                    const pNum = c;
-                    const it = rowObj.parts[pNum] || lastItem;
-                    const vy = Math.max(0.8, it[5] * HEIGHT_SCALE);
-                    const colT = getSeverityColor(it[8], it[5]);
-                    positions.push(vx, vy, z);
-                    colors.push(colT.r, colT.g, colT.b);
-                    if (rowObj.parts[pNum]) {
-                      nodePositions.push({ x: vx, y: vy + 0.45, z, item: rowObj.parts[pNum] });
-                    }
-                  }
+              for (let c = 0; c < cols; c++) {
+                const vx = centerX + xOffsets[c];
+                let vy = 0;
+                let vcol = colBase;
+                if (c === 1 || c === 3) {
+                  vy = yTop * 0.94;
+                  vcol = colTop.clone().multiplyScalar(0.88);
+                } else if (c === 2) {
+                  vy = yTop;
+                  vcol = colTop;
                 }
-
-                if (i < N - 1) {
-                  const rowA = i * cols;
-                  const rowB = (i + 1) * cols;
-                  for (let c = 0; c < cols - 1; c++) {
-                    const a = rowA + c;
-                    const b = rowA + c + 1;
-                    const d = rowB + c;
-                    const e = rowB + c + 1;
-                    indices.push(a, d, b);
-                    indices.push(b, d, e);
-                  }
-                }
+                positions.push(vx, vy, z);
+                colors.push(vcol.r, vcol.g, vcol.b);
               }
 
-              surfaceGeo = new THREE.BufferGeometry();
-              surfaceGeo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-              surfaceGeo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-              surfaceGeo.setIndex(indices);
-              surfaceGeo.computeVertexNormals();
+              if (i < N - 1) {
+                const rowA = i * cols;
+                const rowB = (i + 1) * cols;
+                for (let c = 0; c < cols - 1; c++) {
+                  const a = rowA + c;
+                  const b = rowA + c + 1;
+                  const d = rowB + c;
+                  const e = rowB + c + 1;
+                  indices.push(a, d, b);
+                  indices.push(b, d, e);
+                }
+              }
             }
 
-            // 1. Solid 3D Surface Mesh
+            const surfaceGeo = new THREE.BufferGeometry();
+            surfaceGeo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+            surfaceGeo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+            surfaceGeo.setIndex(indices);
+            surfaceGeo.computeVertexNormals();
+
             const surfaceMat = new THREE.MeshStandardMaterial({
               vertexColors: true,
               roughness: 0.35,
               metalness: 0.15,
               side: THREE.DoubleSide,
               transparent: true,
-              opacity: 0.92,
+              opacity: 0.90,
             });
             surfaceMesh = new THREE.Mesh(surfaceGeo, surfaceMat);
             surfaceMesh.userData = { secId };
             secGroup.add(surfaceMesh);
 
-            // 2. Wireframe Contour Mesh
             const wireGeo = new THREE.WireframeGeometry(surfaceGeo);
             const wireMat = new THREE.LineBasicMaterial({
               color: 0x38bdf8,
               transparent: true,
-              opacity: 0.32,
+              opacity: 0.30,
             });
             wireMesh = new THREE.LineSegments(wireGeo, wireMat);
             wireMesh.userData = { secId };
             secGroup.add(wireMesh);
 
-            // 3. Interactive Vertex Nodes for each Article Part
             nodePositions.forEach((np) => {
               const it = np.item;
               const normKey = `${it[1]}|${it[3]}`;
+              const lensMatch = passesLensFilter(it, edId);
               const nodeMat = new THREE.MeshBasicMaterial({
                 color: getSeverityColor(it[8], it[5]),
                 transparent: true,
@@ -862,16 +1091,17 @@
                 normKey,
                 item: it,
                 isBar: false,
+                lensMatch,
                 topY: np.y,
               };
               nodesGroup.add(m);
               interactiveNodes.push(m);
+
+              addDownwardConvicBar(it, edId, secId, np.x, np.z, np.w, np.d, nodesGroup, barsWireGroup);
             });
           } else {
-            // 3D COLUMNS / BARS MODES ('bars_seq' or 'bars_matrix')
             const barSpecs = [];
             if (surfaceMode === "bars_seq") {
-              // Each article part is a wide 3D column in sequential depth order
               const barW = SEC_SURFACE_WIDTH * 0.72;
               const barD = DEPTH_STEP_Z * 0.74;
               items.forEach((it, idx) => {
@@ -880,7 +1110,6 @@
                 barSpecs.push({ x: centerX, z, w: barW, d: barD, h, item: it });
               });
             } else {
-              // 'bars_matrix': Articles go in depth (-Z), parts (ч.1..ч.5) stand side-by-side across X
               const byArt = [];
               const artMap = {};
               items.forEach((it) => {
@@ -909,25 +1138,22 @@
               });
             }
 
-            // Unit box geometry shifted so Y=0 is base and Y=1 is top
-            const unitBoxGeo = new THREE.BoxGeometry(1, 1, 1);
-            unitBoxGeo.translate(0, 0.5, 0);
-            const unitEdgesGeo = new THREE.EdgesGeometry(unitBoxGeo);
-
             barSpecs.forEach((bs) => {
               const it = bs.item;
               const normKey = `${it[1]}|${it[3]}`;
               const col = getSeverityColor(it[8], it[5]);
+              const lensMatch = passesLensFilter(it, edId);
 
               const barMat = new THREE.MeshStandardMaterial({
                 color: col,
                 roughness: 0.32,
                 metalness: 0.15,
+                side: THREE.DoubleSide,
                 transparent: true,
                 opacity: 0.94,
               });
-              const barMesh = new THREE.Mesh(unitBoxGeo, barMat);
-              barMesh.position.set(bs.x, 0, bs.z);
+              const barMesh = new THREE.Mesh(upBoxGeo, barMat);
+              barMesh.position.set(bs.x, 0.05, bs.z);
               barMesh.scale.set(bs.w, bs.h, bs.d);
               barMesh.userData = {
                 secId,
@@ -935,7 +1161,8 @@
                 normKey,
                 item: it,
                 isBar: true,
-                baseScale: { x: bs.w, y: bs.h, z: bs.d },
+                isDownBar: false,
+                lensMatch,
                 topY: bs.h,
               };
               nodesGroup.add(barMesh);
@@ -946,18 +1173,21 @@
                 transparent: true,
                 opacity: 0.35,
               });
-              const edgeLine = new THREE.LineSegments(unitEdgesGeo, edgeMat);
-              edgeLine.position.set(bs.x, 0, bs.z);
+              const edgeLine = new THREE.LineSegments(upEdgesGeo, edgeMat);
+              edgeLine.position.set(bs.x, 0.05, bs.z);
               edgeLine.scale.set(bs.w, bs.h, bs.d);
               edgeLine.userData = {
                 secId,
                 articleStr: it[1],
                 normKey,
+                isDown: false,
+                lensMatch,
               };
               barsWireGroup.add(edgeLine);
+
+              addDownwardConvicBar(it, edId, secId, bs.x, bs.z, bs.w, bs.d, nodesGroup, barsWireGroup);
             });
 
-            // Subtle base platform along the section corridor so hovering the corridor keeps the whole section highlighted
             const minZ = Math.min(...barSpecs.map((b) => b.z)) - 2;
             const lenZ = Math.abs(minZ) + 4;
             const floorGeo = new THREE.PlaneGeometry(SEC_SURFACE_WIDTH * 1.08, lenZ);
@@ -970,20 +1200,26 @@
               depthWrite: false,
             });
             surfaceMesh = new THREE.Mesh(floorGeo, floorMat);
-            surfaceMesh.position.set(centerX, 0.02, -lenZ / 2 + 2);
+            surfaceMesh.position.set(centerX, 0, -lenZ / 2 + 2);
             surfaceMesh.userData = { secId, isFloor: true };
             secGroup.add(surfaceMesh);
           }
 
-          // Section Front Header Sprite (Roman numeral I..XX)
           const labelSprite = makeTextSprite(`Розділ ${secId}`, {
             fontSize: 32,
             scale: 0.085,
           });
-          labelSprite.position.set(centerX, -6, 12);
-          secGroup.add(labelSprite);
+          labelSprite.position.set(centerX, 2.5, 15);
+          labelsRoot.add(labelSprite);
 
           const avgIdx = items.reduce((acc, r) => acc + r[5], 0) / items.length;
+          const sumConvic = items.reduce((acc, r) => acc + (r[12] || 0), 0);
+          const matchedItems = items.filter((it) => passesLensFilter(it, edId));
+          const matchedAvgIdx =
+            matchedItems.length > 0
+              ? matchedItems.reduce((acc, r) => acc + r[5], 0) / matchedItems.length
+              : 0;
+          const matchedSumConvic = matchedItems.reduce((acc, r) => acc + (r[12] || 0), 0);
           sectionObjects[secId] = {
             secId,
             group: secGroup,
@@ -995,6 +1231,10 @@
             items,
             count: items.length,
             avgIdx,
+            sumConvic,
+            matchedCount: matchedItems.length,
+            matchedAvgIdx,
+            matchedSumConvic,
           };
         });
 
@@ -1002,7 +1242,6 @@
         updateSelectedNormVisuals();
       }
 
-      // Highlighting logic: hovered/locked section is bright; all other 19 sections become transparent (wireframe contours only!)
       function setHighlightedSection(secId) {
         hoveredSection = secId;
         updatePillsUI();
@@ -1012,43 +1251,66 @@
         if (activeSec && sectionObjects[activeSec]) {
           const st = sectionObjects[activeSec];
           hudSecTitle.textContent = secTitleMap[activeSec];
-          hudSecDesc.innerHTML = `У редакції <b>${currentEdition === "current" ? "2026" : currentEdition}</b>: частин статей — <b>${st.count}</b> | Середній I<sub>КЗОСН</sub> по розділу — <b>${st.avgIdx.toFixed(2)}</b>. ${lockedSection ? "(Розділ закріплено кліком)" : ""}`;
+          if (lensMode !== "all") {
+            const convicInfo =
+              st.matchedSumConvic > 0
+                ? ` | Засуджено за виділеними: <b>${st.matchedSumConvic.toLocaleString("uk-UA")} осіб</b>`
+                : " | Засуджено за виділеними: <b>0 осіб</b>";
+            hudSecDesc.innerHTML = `Редакція <b>${currentEdition === "current" ? "2026" : currentEdition}</b>: виділено норм у розділі — <b>${st.matchedCount}</b> (із ${st.count}) | Середній I<sub>КЗОСН</sub> виділених — <b>${st.matchedAvgIdx.toFixed(2)}</b>${convicInfo}.`;
+          } else {
+            const convicInfo =
+              st.sumConvic > 0
+                ? ` | Засуджено (CONVIC): <b>${st.sumConvic.toLocaleString("uk-UA")} осіб</b>`
+                : "";
+            hudSecDesc.innerHTML = `Редакція <b>${currentEdition === "current" ? "2026" : currentEdition}</b>: норм — <b>${st.count}</b> | Середній I<sub>КЗОСН</sub> — <b>${st.avgIdx.toFixed(2)}</b>${convicInfo}. ${lockedSection ? "(Розділ закріплено кліком)" : ""}`;
+          }
         } else {
           hudSecTitle.textContent = "Усі розділи Особливої частини КК (I – XX)";
-          hudSecDesc.textContent =
-            "Наведіть курсор на будь-який розділ — він підсвітиться, а решта стануть прозорими (тільки контури). При наведенні на стовпчик статті прозорими стають і решта статей цього розділу.";
+          if (lensMode === "core_top25") {
+            hudSecDesc.innerHTML =
+              "🔥 <b>Фільтр «Ядро репресії»:</b> підсвічено лише <b>Топ-25 норм</b> за кількістю засуджених, які генерують ~75% усіх вироків в Україні. Решта 940 норм КК переведені в контури.";
+          } else if (lensMode === "dead_giants") {
+            hudSecDesc.innerHTML =
+              "👻 <b>Фільтр «Символічне право»:</b> підсвічено найсуворіші норми КК (<b>I<sub>КЗОСН</sub> ≥ 80</b>, тяжкі й особливо тяжкі злочини), за якими за рік винесено від 0 до максимум 5 вироків (~75% верхівки КК!).";
+          } else if (lensMode === "mass_mild") {
+            hudSecDesc.innerHTML =
+              "⚖️ <b>Фільтр «Масові нетяжкі»:</b> підсвічено норми з помірною санкцією (<b>I<sub>КЗОСН</sub> ≤ 50</b>), але масовою судовою практикою (<b>≥ 100 засуджених</b> на рік).";
+          } else {
+            hudSecDesc.innerHTML =
+              "Норми впорядковано за спаданням I<sub>КЗОСН</sub> ↑ (плавний схил суворості). Унизу (Y &lt; 0) — фактичні вироки CONVIC ↓. Ви одразу бачите порожнечу під червоними вершинами та центри реальної судової практики.";
+          }
         }
       }
 
       function applySectionHighlightState() {
         const focusSec = lockedSection || hoveredSection;
+        const hasLens = lensMode !== "all";
+
         Object.values(sectionObjects).forEach((so) => {
           if (!focusSec) {
-            // Default state: all sections visible
             if (so.surfaceMesh) {
               so.surfaceMesh.visible = true;
               const isFl = so.surfaceMesh.userData.isFloor;
-              so.surfaceMesh.material.opacity = isFl ? 0.14 : 0.90;
-              so.surfaceMesh.material.depthWrite = !isFl;
+              so.surfaceMesh.material.opacity = hasLens ? 0.06 : isFl ? 0.14 : 0.90;
+              so.surfaceMesh.material.depthWrite = !isFl && !hasLens;
             }
             if (so.wireMesh) {
               so.wireMesh.material.color.setHex(0x38bdf8);
-              so.wireMesh.material.opacity = 0.25;
+              so.wireMesh.material.opacity = hasLens ? 0.15 : 0.25;
             }
             so.barsWireGroup.children.forEach((l) => {
-              l.material.color.setHex(0x38bdf8);
-              l.material.opacity = 0.30;
+              const ok = l.userData.lensMatch;
+              l.material.color.setHex(ok ? (l.userData.isDown ? 0xe879f9 : 0x38bdf8) : 0x334155);
+              l.material.opacity = hasLens ? (ok ? 0.85 : 0.18) : 0.30;
             });
             so.nodesGroup.children.forEach((m) => {
-              m.material.opacity = 0.95;
-              m.material.depthWrite = true;
-              if (!m.userData.isBar) m.scale.setScalar(1.0);
+              const ok = m.userData.lensMatch;
+              m.material.opacity = hasLens ? (ok ? 1.0 : 0.03) : 0.94;
+              m.material.depthWrite = hasLens ? ok : true;
+              if (!m.userData.isBar) m.scale.setScalar(hasLens ? (ok ? 1.4 : 0.6) : 1.0);
             });
           } else if (so.secId === focusSec) {
-            // Focused section: check if a specific article is hovered inside this section!
             if (hoveredArticle) {
-              // Article drill-down inside the highlighted section:
-              // Only parts of hoveredArticle stay 100% opaque; all other articles in this section become transparent (contours only)
               if (so.surfaceMesh) {
                 so.surfaceMesh.visible = true;
                 so.surfaceMesh.material.opacity = 0.08;
@@ -1059,27 +1321,32 @@
                 so.wireMesh.material.opacity = 0.45;
               }
               so.barsWireGroup.children.forEach((l) => {
-                if (l.userData.articleStr === hoveredArticle) {
+                const matchHover = hasLens
+                  ? l.userData.normKey === hoveredNormKey && l.userData.lensMatch
+                  : l.userData.articleStr === hoveredArticle;
+                if (matchHover) {
                   l.material.color.setHex(0xffffff);
                   l.material.opacity = 1.0;
                 } else {
                   l.material.color.setHex(0x475569);
-                  l.material.opacity = 0.35;
+                  l.material.opacity = hasLens ? 0.22 : 0.32;
                 }
               });
               so.nodesGroup.children.forEach((m) => {
-                if (m.userData.articleStr === hoveredArticle) {
+                const matchHover = hasLens
+                  ? m.userData.normKey === hoveredNormKey && m.userData.lensMatch
+                  : m.userData.articleStr === hoveredArticle;
+                if (matchHover) {
                   m.material.opacity = 1.0;
                   m.material.depthWrite = true;
                   if (!m.userData.isBar) m.scale.setScalar(1.65);
                 } else {
-                  m.material.opacity = 0.04;
+                  m.material.opacity = 0.03;
                   m.material.depthWrite = false;
                   if (!m.userData.isBar) m.scale.setScalar(0.75);
                 }
               });
             } else {
-              // Entire focused section is opaque
               if (so.surfaceMesh) {
                 so.surfaceMesh.visible = true;
                 const isFl = so.surfaceMesh.userData.isFloor;
@@ -1091,28 +1358,29 @@
                 so.wireMesh.material.opacity = 0.75;
               }
               so.barsWireGroup.children.forEach((l) => {
-                l.material.color.setHex(0xe0f2fe);
-                l.material.opacity = 0.85;
+                const ok = l.userData.lensMatch;
+                l.material.color.setHex(ok ? (l.userData.isDown ? 0xf5d0fe : 0xe0f2fe) : 0x475569);
+                l.material.opacity = hasLens ? (ok ? 0.95 : 0.25) : 0.85;
               });
               so.nodesGroup.children.forEach((m) => {
-                m.material.opacity = 1.0;
-                m.material.depthWrite = true;
+                const ok = m.userData.lensMatch;
+                m.material.opacity = hasLens ? (ok ? 1.0 : 0.05) : 1.0;
+                m.material.depthWrite = hasLens ? ok : true;
                 if (!m.userData.isBar) m.scale.setScalar(1.3);
               });
             }
           } else {
-            // Other 19 sections: transparent surface/bars (only wireframe contours visible!)
             if (so.surfaceMesh) {
               so.surfaceMesh.material.opacity = 0.02;
               so.surfaceMesh.material.depthWrite = false;
             }
             if (so.wireMesh) {
               so.wireMesh.material.color.setHex(0x334155);
-              so.wireMesh.material.opacity = 0.38;
+              so.wireMesh.material.opacity = 0.35;
             }
             so.barsWireGroup.children.forEach((l) => {
               l.material.color.setHex(0x334155);
-              l.material.opacity = 0.42;
+              l.material.opacity = 0.32;
             });
             so.nodesGroup.children.forEach((m) => {
               m.material.opacity = 0.03;
@@ -1123,7 +1391,6 @@
         });
       }
 
-      // Highlight selected norm in 3D (without the 3D rectangle) and render the 2D Bottom SVG Chart
       function updateSelectedNormVisuals() {
         while (subPlaneRoot.children.length > 0) {
           subPlaneRoot.remove(subPlaneRoot.children[0]);
@@ -1131,36 +1398,53 @@
 
         const normHist = DATA.history[selectedNormKey];
         if (!normHist) return;
+        if (window.KZOSN_SHELL) {
+          window.KZOSN_SHELL.setState({
+            ed: currentEdition,
+            norm: selectedNormKey,
+            sec: lockedSection || normHist.section || "ALL",
+          });
+        }
 
-        // Find the node or bar in current 3D scene if present
-        let activeNode = null;
+        let activeUpNode = null;
+        let activeDownNode = null;
         interactiveNodes.forEach((m) => {
           if (m.userData.normKey === selectedNormKey) {
-            activeNode = m;
-            if (!m.userData.isBar) {
-              m.scale.setScalar(2.1);
+            if (m.userData.isDownBar) {
+              activeDownNode = m;
+            } else {
+              activeUpNode = m;
+              if (!m.userData.isBar) m.scale.setScalar(2.1);
             }
           }
         });
 
-        // Place a clean glowing marker beacon at the top of the selected vertex/column
-        if (activeNode) {
-          const topY = activeNode.userData.topY || activeNode.position.y;
-          const markerPos = new THREE.Vector3(activeNode.position.x, topY + 1.4, activeNode.position.z);
-
+        if (activeUpNode) {
+          const topY = activeUpNode.userData.topY || activeUpNode.position.y;
           const ringGeo = new THREE.RingGeometry(1.4, 2.3, 24);
           const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
           const ring = new THREE.Mesh(ringGeo, ringMat);
-          ring.position.copy(markerPos);
+          ring.position.set(activeUpNode.position.x, topY + 1.5, activeUpNode.position.z);
           subPlaneRoot.add(ring);
         }
 
-        // Update Bottom Panel Inspector & Interactive SVG Timeline
-        renderBottomTimeline(normHist);
+        if (activeDownNode) {
+          const botY = activeDownNode.userData.topY || -1;
+          const ringGeo = new THREE.RingGeometry(1.4, 2.3, 24);
+          const ringMat = new THREE.MeshBasicMaterial({ color: 0xf0abfc, side: THREE.DoubleSide });
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.position.set(activeDownNode.position.x, botY - 1.5, activeDownNode.position.z);
+          subPlaneRoot.add(ring);
+        }
+
+        if (bottomChartMode === "macro") {
+          renderMacroTimeline(normHist);
+        } else {
+          renderBottomTimeline(normHist);
+        }
       }
 
-      function renderBottomTimeline(normHist) {
-        const edList = DATA.editions.map((e) => e.edition_id);
+      function updateLeftNormInspector(normHist) {
         const series = normHist.series;
         const curEntry = series[currentEdition] || Object.values(series)[Object.values(series).length - 1];
 
@@ -1168,96 +1452,119 @@
         document.getElementById("dyn-norm-sec").textContent = `Розділ ${normHist.section}`;
         document.getElementById("dyn-norm-title").textContent = DATA.titles[normHist.title_id] || "";
 
+        const totalConvicAllYears = Object.values(series).reduce((acc, v) => acc + (v[6] || 0), 0);
+
         if (curEntry) {
-          const [idxVal, rankNi, nMax, sev, sid, did] = curEntry;
+          const [idxVal, rankNi, nMax, sev, sid, did, convicCnt, idxConvic, cRank, cNMax] = curEntry;
           document.getElementById("dyn-norm-sanc").innerHTML = `<b>Санкція (${currentEdition === "current" ? "2026" : currentEdition}):</b> ${DATA.sanctions[sid] || ""}`;
           document.getElementById("dyn-norm-disp").innerHTML = `<b>Диспозиція:</b> ${DATA.dispositions[did] || ""}`;
           document.getElementById("dyn-stat-idx").textContent = idxVal.toFixed(2);
           document.getElementById("dyn-stat-idx").style.color = getSeverityHex(sev);
           document.getElementById("dyn-stat-rank").textContent = `${rankNi} із ${nMax}`;
+
+          if (convicCnt !== null && convicCnt !== undefined && convicCnt > 0) {
+            document.getElementById("dyn-stat-convic-idx").textContent = `${idxConvic.toFixed(2)} (#${cRank}/${cNMax})`;
+            document.getElementById("dyn-stat-convic-cnt").textContent = `${convicCnt.toLocaleString("uk-UA")} (Σ=${totalConvicAllYears.toLocaleString("uk-UA")})`;
+          } else {
+            const hasYearStats = currentEdition >= "2013" && currentEdition <= "2025";
+            document.getElementById("dyn-stat-convic-idx").textContent = hasYearStats ? "0.00 (0 вироків)" : "н/д";
+            document.getElementById("dyn-stat-convic-cnt").textContent = `${hasYearStats ? "0" : "—"} (Σ=${totalConvicAllYears.toLocaleString("uk-UA")})`;
+          }
         }
+      }
 
-        const allVals = Object.values(series).map((v) => v[0]);
-        const minV = Math.min(...allVals);
-        const maxV = Math.max(...allVals);
-        document.getElementById("dyn-stat-delta").textContent = `${minV.toFixed(1)} … ${maxV.toFixed(1)} (Δ ${(maxV - minV).toFixed(1)})`;
+      // Mode 1: Selected Norm Timeline (2001-2026)
+      function renderBottomTimeline(normHist) {
+        updateLeftNormInspector(normHist);
+        chartLegendSpan.innerHTML = `
+          <span style="color:#38bdf8">━●━ I<sub>КЗОСН</sub> (суворість санкції)</span> &nbsp;|&nbsp;
+          <span style="color:#e879f9">━■━ I<sub>CONVIC</sub> (місце за засудженими, число = осіб)</span> &nbsp;|&nbsp;
+          <span style="color:#f43f5e">◆ Зміна санкції</span>
+        `;
 
-        // Draw SVG Chart
+        const edList = DATA.editions.map((e) => e.edition_id);
+        const series = normHist.series;
         const svg = document.getElementById("timeline-svg");
-        const W = 900;
-        const H = 185;
-        const padL = 44;
-        const padR = 24;
-        const padT = 22;
-        const padB = 34;
-        const plotW = W - padL - padR;
-        const plotH = H - padT - padB;
-
-        // Compute dynamic Y range for better visibility while keeping context
-        const yMin = Math.max(0, Math.floor((minV - 8) / 10) * 10);
-        const yMax = Math.min(100, Math.ceil((maxV + 8) / 10) * 10);
-        const spanY = Math.max(10, yMax - yMin);
-
+        const W = 900, H = 185, padL = 44, padR = 24, padT = 22, padB = 34;
+        const plotW = W - padL - padR, plotH = H - padT - padB;
         let html = "";
 
-        // Horizontal grid lines
         for (let step = 0; step <= 4; step++) {
-          const val = yMin + (spanY * step) / 4;
-          const y = padT + plotH - ((val - yMin) / spanY) * plotH;
+          const val = (100 * step) / 4;
+          const y = padT + plotH - (val / 100) * plotH;
           html += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-dasharray="3,3" />`;
           html += `<text x="${padL - 7}" y="${y + 4}" text-anchor="end" fill="#94a3b8" font-size="10.5">${val.toFixed(0)}</text>`;
         }
 
-        // Collect points
-        const pts = [];
+        const ptsKzosn = [];
+        const ptsConvic = [];
         let prevSancId = null;
+
         edList.forEach((edId, i) => {
           const x = padL + (i / (edList.length - 1)) * plotW;
           const shortEd = edId === "2001_09_01" ? "09.01" : edId === "current" ? "2026" : edId.slice(2);
-          // X-axis label
           const isCur = edId === currentEdition;
           html += `<text x="${x}" y="${H - 10}" text-anchor="middle" fill="${isCur ? "#38bdf8" : "#94a3b8"}" font-weight="${isCur ? "700" : "400"}" font-size="10.5">${shortEd}</text>`;
 
           const entry = series[edId];
           if (entry) {
-            const [idxVal, rankNi, nMax, sev, sid] = entry;
-            const y = padT + plotH - ((idxVal - yMin) / spanY) * plotH;
+            const [idxVal, rankNi, nMax, sev, sid, , convicCnt, idxConvic, cRank, cNMax] = entry;
+            const yK = padT + plotH - (idxVal / 100) * plotH;
             const sancChanged = prevSancId !== null && prevSancId !== sid;
             prevSancId = sid;
-            pts.push({ edId, shortEd, x, y, idxVal, rankNi, nMax, sev, sancChanged });
+            ptsKzosn.push({ edId, shortEd, x, y: yK, idxVal, rankNi, nMax, sev, sancChanged });
+
+            if (edId >= "2013" && edId <= "2025") {
+              const cVal = idxConvic || 0;
+              const yC = padT + plotH - (cVal / 100) * plotH;
+              ptsConvic.push({ edId, shortEd, x, y: yC, idxConvic: cVal, convicCnt: convicCnt || 0, cRank, cNMax });
+            }
           } else {
             prevSancId = null;
           }
         });
 
-        // Area under curve & Polyline
-        if (pts.length > 1) {
-          const pathD = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
-          const areaD = `${pathD} L ${pts[pts.length - 1].x.toFixed(1)} ${padT + plotH} L ${pts[0].x.toFixed(1)} ${padT + plotH} Z`;
-          html += `<path d="${areaD}" fill="rgba(56, 189, 248, 0.12)" />`;
-          html += `<path d="${pathD}" fill="none" stroke="#38bdf8" stroke-width="2.5" />`;
+        if (ptsKzosn.length > 1) {
+          const pathD = ptsKzosn.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+          const areaD = `${pathD} L ${ptsKzosn[ptsKzosn.length - 1].x.toFixed(1)} ${padT + plotH} L ${ptsKzosn[0].x.toFixed(1)} ${padT + plotH} Z`;
+          html += `<path d="${areaD}" fill="rgba(56, 189, 248, 0.10)" />`;
+          html += `<path d="${pathD}" fill="none" stroke="#38bdf8" stroke-width="2.4" />`;
         }
 
-        // Points and labels
-        pts.forEach((p) => {
+        if (ptsConvic.length > 1) {
+          const pathC = ptsConvic.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+          html += `<path d="${pathC}" fill="none" stroke="#e879f9" stroke-width="2.2" stroke-dasharray="5,3" />`;
+        }
+
+        ptsConvic.forEach((p) => {
+          const isCur = p.edId === currentEdition;
+          const r = isCur ? 5.2 : 3.8;
+          html += `<rect x="${(p.x - r).toFixed(1)}" y="${(p.y - r).toFixed(1)}" width="${(r * 2).toFixed(1)}" height="${(r * 2).toFixed(1)}" rx="2" fill="#e879f9" stroke="#0f172a" stroke-width="1.2" style="cursor:pointer" data-ed="${p.edId}">
+            <title>Рік ${p.edId}: Засуджено (CONVIC) = ${p.convicCnt} осіб | I_CONVIC = ${p.idxConvic.toFixed(2)} ${p.cRank ? `(місце ${p.cRank}/${p.cNMax})` : ""}</title>
+          </rect>`;
+          if (p.convicCnt > 0 && (isCur || p.edId === "2013" || p.edId === "2019" || p.edId === "2021" || p.edId === "2023" || p.edId === "2025")) {
+            html += `<text x="${p.x}" y="${Math.min(padT + plotH - 3, p.y + 13)}" text-anchor="middle" fill="#f0abfc" font-size="9.5" font-weight="600">${p.convicCnt}</text>`;
+          }
+        });
+
+        ptsKzosn.forEach((p) => {
           const isCur = p.edId === currentEdition;
           if (isCur) {
             html += `<line x1="${p.x}" y1="${padT}" x2="${p.x}" y2="${padT + plotH}" stroke="rgba(56,189,248,0.45)" stroke-width="1.5" />`;
           }
           const color = p.sancChanged ? "#f43f5e" : getSeverityHex(p.sev);
-          const r = isCur ? 6 : p.sancChanged ? 5.2 : 4;
-          html += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${color}" stroke="#0f172a" stroke-width="1.5" style="cursor:pointer" data-ed="${p.edId}">
+          const r = isCur ? 5.8 : p.sancChanged ? 5.0 : 3.8;
+          html += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${color}" stroke="#0f172a" stroke-width="1.4" style="cursor:pointer" data-ed="${p.edId}">
             <title>Редакція ${p.edId}: I_КЗОСН = ${p.idxVal.toFixed(2)} (місце ${p.rankNi}/${p.nMax})${p.sancChanged ? " — ЗМІНЕНО САНКЦІЮ" : ""}</title>
           </circle>`;
           if (isCur || p.sancChanged || p.edId === "2001_09_01" || p.edId === "current") {
-            html += `<text x="${p.x}" y="${p.y - 9}" text-anchor="middle" fill="#f8fafc" font-size="10" font-weight="600">${p.idxVal.toFixed(1)}</text>`;
+            html += `<text x="${p.x}" y="${Math.max(12, p.y - 8)}" text-anchor="middle" fill="#f8fafc" font-size="9.8" font-weight="600">${p.idxVal.toFixed(1)}</text>`;
           }
         });
 
         svg.innerHTML = html;
 
-        // Allow clicking on a timeline point to switch edition
-        svg.querySelectorAll("circle[data-ed]").forEach((c) => {
+        svg.querySelectorAll("[data-ed]").forEach((c) => {
           c.addEventListener("click", () => {
             currentEdition = c.dataset.ed;
             editionSelect.value = currentEdition;
@@ -1266,7 +1573,108 @@
         });
       }
 
-      // Raycasting for mouse hover (Section highlighting + Node tooltip) and click (Select norm)
+      // Mode 2: Macro Trends Chart ("Ножиці номінальної та реальної суворості КК + зсув ст. 185", 2013-2025)
+      function renderMacroTimeline(normHist) {
+        updateLeftNormInspector(normHist);
+        chartLegendSpan.innerHTML = `
+          <span style="color:#38bdf8">━●━ Номінальний середній I<sub>КЗОСН</sub> КК (~60)</span> &nbsp;|&nbsp;
+          <span style="color:#f0abfc">━■━ Реальний середньозважений за вироками I<sub>КЗОСН</sub> (58 → 44)</span> &nbsp;|&nbsp;
+          <span style="color:#fde047">━▲━ Частка ч. 4 ст. 185 у всіх крадіжках (0.1% → 94%)</span>
+        `;
+
+        const years = ["2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"];
+        const svg = document.getElementById("timeline-svg");
+        const W = 900, H = 185, padL = 44, padR = 24, padT = 22, padB = 34;
+        const plotW = W - padL - padR, plotH = H - padT - padB;
+        let html = "";
+
+        for (let step = 0; step <= 4; step++) {
+          const val = (100 * step) / 4;
+          const y = padT + plotH - (val / 100) * plotH;
+          html += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-dasharray="3,3" />`;
+          html += `<text x="${padL - 7}" y="${y + 4}" text-anchor="end" fill="#94a3b8" font-size="10.5">${val.toFixed(0)}</text>`;
+        }
+
+        const ptsNom = [];
+        const ptsReal = [];
+        const pts185 = [];
+
+        years.forEach((yr, i) => {
+          const x = padL + (i / (years.length - 1)) * plotW;
+          const isCur = yr === currentEdition;
+          html += `<text x="${x}" y="${H - 10}" text-anchor="middle" fill="${isCur ? "#38bdf8" : "#cbd5e1"}" font-weight="${isCur ? "700" : "500"}" font-size="11">${yr}</text>`;
+
+          const m = macroByEdition[yr];
+          const yNom = padT + plotH - (m.nomKzosn / 100) * plotH;
+          const yReal = padT + plotH - ((m.weightedKzosn || 0) / 100) * plotH;
+          ptsNom.push({ yr, x, y: yNom, val: m.nomKzosn });
+          ptsReal.push({ yr, x, y: yReal, val: m.weightedKzosn || 0, gap: m.nomKzosn - (m.weightedKzosn || 0) });
+
+          // Compute share of part 4 in all Art. 185 convictions
+          const recs185 = (DATA.byEdition[yr] || []).filter((r) => r[1] === "185");
+          const sum185 = recs185.reduce((a, r) => a + (r[12] || 0), 0);
+          const p4 = recs185.find((r) => r[3] === 4);
+          const c4 = p4 ? p4[12] || 0 : 0;
+          const share4 = sum185 > 0 ? (c4 / sum185) * 100 : 0;
+          const y4 = padT + plotH - (share4 / 100) * plotH;
+          pts185.push({ yr, x, y: y4, val: share4, c4 });
+        });
+
+        // Shaded area between Nominal and Real Weighted KZOSN ("Ножиці")
+        const polyScissors = [
+          ...ptsNom.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`),
+          ...[...ptsReal].reverse().map((p) => `L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`),
+          "Z",
+        ].join(" ");
+        html += `<path d="${polyScissors}" fill="rgba(232, 121, 249, 0.14)" />`;
+
+        const pathNom = ptsNom.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+        const pathReal = ptsReal.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+        const path185 = pts185.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+
+        html += `<path d="${pathNom}" fill="none" stroke="#38bdf8" stroke-width="2.5" />`;
+        html += `<path d="${pathReal}" fill="none" stroke="#e879f9" stroke-width="2.8" />`;
+        html += `<path d="${path185}" fill="none" stroke="#fde047" stroke-width="2.2" stroke-dasharray="4,3" />`;
+
+        ptsNom.forEach((p) => {
+          html += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#38bdf8" style="cursor:pointer" data-ed="${p.yr}">
+            <title>${p.yr}: Номінальний середній I_КЗОСН КК = ${p.val.toFixed(2)}</title>
+          </circle>`;
+          if (p.yr === "2013" || p.yr === "2020" || p.yr === "2025") {
+            html += `<text x="${p.x}" y="${p.y - 8}" text-anchor="middle" fill="#38bdf8" font-size="9.8" font-weight="600">${p.val.toFixed(1)}</text>`;
+          }
+        });
+
+        ptsReal.forEach((p) => {
+          html += `<rect x="${p.x - 4}" y="${p.y - 4}" width="8" height="8" rx="2" fill="#e879f9" style="cursor:pointer" data-ed="${p.yr}">
+            <title>${p.yr}: Реальний середньозважений за вироками I_КЗОСН = ${p.val.toFixed(2)} (Ножиці: -${p.gap.toFixed(1)} п.)</title>
+          </rect>`;
+          if (p.yr === "2013" || p.yr === "2019" || p.yr === "2020" || p.yr === "2025") {
+            html += `<text x="${p.x}" y="${p.y + 14}" text-anchor="middle" fill="#f0abfc" font-size="10" font-weight="700">${p.val.toFixed(1)}</text>`;
+          }
+        });
+
+        pts185.forEach((p) => {
+          html += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#fde047" style="cursor:pointer" data-ed="${p.yr}">
+            <title>${p.yr}: Частка ч. 4 ст. 185 серед усіх крадіжок = ${p.val.toFixed(1)}% (${p.c4} засуджених)</title>
+          </circle>`;
+          if (p.yr === "2021" || p.yr === "2022" || p.yr === "2023" || p.yr === "2025") {
+            html += `<text x="${p.x}" y="${Math.max(13, p.y - 8)}" text-anchor="middle" fill="#fde047" font-size="9.5" font-weight="700">${p.val.toFixed(0)}%</text>`;
+          }
+        });
+
+        svg.innerHTML = html;
+
+        svg.querySelectorAll("[data-ed]").forEach((c) => {
+          c.addEventListener("click", () => {
+            currentEdition = c.dataset.ed;
+            editionSelect.value = currentEdition;
+            buildSceneForEdition(currentEdition);
+          });
+        });
+      }
+
+      // Raycasting
       const raycaster = new THREE.Raycaster();
       const mouse = new THREE.Vector2();
       let pointerDownPos = { x: 0, y: 0 };
@@ -1278,44 +1686,96 @@
 
         raycaster.setFromCamera(mouse, camera);
 
-        // 1. Check intersection with article-part nodes/columns first
-        const nodeHits = raycaster.intersectObjects(interactiveNodes, false);
-        if (nodeHits.length > 0) {
-          const hitObj = nodeHits[0].object;
-          const { secId, articleStr, item } = hitObj.userData;
+        const activeTargets = interactiveNodes.filter((m) => {
+          if (lensMode !== "all" && !m.userData.lensMatch) return false;
+          if (lockedSection && m.userData.secId !== lockedSection) return false;
+          return true;
+        });
+
+        const surfaceMeshes = Object.values(sectionObjects)
+          .filter((s) => !lockedSection || s.secId === lockedSection)
+          .map((s) => s.surfaceMesh)
+          .filter(Boolean);
+        const surfHits = lensMode === "all" ? raycaster.intersectObjects(surfaceMeshes, false) : [];
+
+        const nodeHits = raycaster.intersectObjects(activeTargets, false);
+        // Prevent ray from piercing through a closer solid 3D ribbon surface to hit a node behind it
+        const validNodeHit =
+          nodeHits.length > 0 &&
+          !(
+            surfaceMode === "ribbon" &&
+            surfHits.length > 0 &&
+            surfHits[0].object.userData.secId !== nodeHits[0].object.userData.secId &&
+            surfHits[0].distance < nodeHits[0].distance - 1.5
+          )
+            ? nodeHits[0]
+            : null;
+
+        if (validNodeHit) {
+          const hitObj = validNodeHit.object;
+          const { secId, articleStr, normKey, item } = hitObj.userData;
           if (!lockedSection || lockedSection === secId) {
             const secChanged = !lockedSection && hoveredSection !== secId;
-            const artChanged = hoveredArticle !== articleStr;
+            const artChanged = hoveredArticle !== articleStr || hoveredNormKey !== normKey;
             hoveredArticle = articleStr;
+            hoveredNormKey = normKey;
             if (secChanged) {
               setHighlightedSection(secId);
             } else if (artChanged) {
               applySectionHighlightState();
             }
           }
-          // Show tooltip
+          // Instant live update of bottom panel & timeline on hover!
+          if (selectedNormKey !== normKey) {
+            selectedNormKey = normKey;
+            updateSelectedNormVisuals();
+          }
           canvas.style.cursor = "pointer";
           tooltip.style.display = "block";
-          tooltip.style.left = Math.min(window.innerWidth - 350, e.clientX + 16) + "px";
+          tooltip.style.left = Math.min(window.innerWidth - 380, e.clientX + 16) + "px";
           tooltip.style.top = Math.max(10, e.clientY - 20) + "px";
           document.getElementById("tt-label").textContent = `${item[4]} (Розділ ${item[0]})`;
-          document.getElementById("tt-index").innerHTML = `I<sub>КЗОСН</sub> = ${item[5].toFixed(2)} (#${item[6]}/${item[7]})`;
+          document.getElementById("tt-index").innerHTML = `I<sub>КЗОСН</sub> ↑ = ${item[5].toFixed(2)} (#${item[6]}/${item[7]})`;
+
+          const convicCnt = item[12];
+          const idxConvic = item[13] || 0;
+          const cRank = item[14];
+          const cNMax = item[15];
+          const ttConvicEl = document.getElementById("tt-convic");
+          if (convicCnt !== null && convicCnt !== undefined && convicCnt > 0) {
+            ttConvicEl.style.display = "block";
+            ttConvicEl.innerHTML = `Засуджено (CONVIC): <b>${convicCnt.toLocaleString("uk-UA")} осіб</b> | I<sub>CONVIC</sub> = <b>${idxConvic.toFixed(2)}</b> (#${cRank}/${cNMax})`;
+          } else if (currentEdition >= "2013" && currentEdition <= "2025") {
+            ttConvicEl.style.display = "block";
+            ttConvicEl.innerHTML = `CONVIC: <b>0 / не зафіксовано</b> (I<sub>CONVIC</sub> = 0.00)`;
+          } else {
+            ttConvicEl.style.display = "none";
+          }
+
           document.getElementById("tt-title").textContent = DATA.titles[item[9]] || "";
           document.getElementById("tt-sanc").textContent = DATA.sanctions[item[11]] || "";
           return;
         }
 
         tooltip.style.display = "none";
-        if (hoveredArticle !== null) {
+        if (hoveredArticle !== null || hoveredNormKey !== null) {
           hoveredArticle = null;
-          applySectionHighlightState();
+          hoveredNormKey = null;
+          if (lensMode !== "all" && !lockedSection) {
+            setHighlightedSection(null);
+          } else {
+            applySectionHighlightState();
+          }
         }
 
-        // 2. Check intersection with section 3D surfaces
-        const surfaceMeshes = Object.values(sectionObjects)
-          .map((s) => s.surfaceMesh)
-          .filter(Boolean);
-        const surfHits = raycaster.intersectObjects(surfaceMeshes, false);
+        if (lensMode !== "all") {
+          canvas.style.cursor = "default";
+          if (!lockedSection && hoveredSection !== null) {
+            setHighlightedSection(null);
+          }
+          return;
+        }
+
         if (surfHits.length > 0) {
           const secId = surfHits[0].object.userData.secId;
           canvas.style.cursor = "grab";
@@ -1336,17 +1796,24 @@
 
       canvas.addEventListener("pointerup", (e) => {
         const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
-        if (dist > 5) return; // Ignore camera drag
+        if (dist > 5) return;
 
         const rect = canvas.getBoundingClientRect();
         mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
 
-        const nodeHits = raycaster.intersectObjects(interactiveNodes, false);
+        const activeTargets =
+          lensMode !== "all"
+            ? interactiveNodes.filter((m) => m.userData.lensMatch)
+            : interactiveNodes;
+        const nodeHits = raycaster.intersectObjects(activeTargets, false);
         if (nodeHits.length > 0) {
           const { normKey } = nodeHits[0].object.userData;
           selectedNormKey = normKey;
+          bottomChartMode = "norm";
+          tabNormBtn.classList.add("active");
+          tabMacroBtn.classList.remove("active");
           updateSelectedNormVisuals();
         }
       });
@@ -1357,9 +1824,56 @@
         buildSceneForEdition(currentEdition);
       });
 
+      sortModeSelect.addEventListener("change", () => {
+        sortMode = sortModeSelect.value;
+        buildSceneForEdition(currentEdition);
+      });
+
+      convicScaleSelect.addEventListener("change", () => {
+        convicScale = convicScaleSelect.value;
+        buildSceneForEdition(currentEdition);
+      });
+
+      lensModeSelect.addEventListener("change", () => {
+        lensMode = lensModeSelect.value;
+        hoveredArticle = null;
+        hoveredNormKey = null;
+        lockedSection = null;
+        if (lensMode !== "all") {
+          const recs = (DATA.byEdition[currentEdition] || []).filter((it) =>
+            passesLensFilter(it, currentEdition)
+          );
+          if (recs.length > 0) {
+            if (lensMode === "dead_giants") {
+              recs.sort((a, b) => b[5] - a[5]);
+            } else {
+              recs.sort((a, b) => (b[12] || 0) - (a[12] || 0));
+            }
+            selectedNormKey = `${recs[0][1]}|${recs[0][3]}`;
+          }
+        }
+        updatePillsUI();
+        setHighlightedSection(lockedSection);
+        buildSceneForEdition(currentEdition);
+      });
+
       surfaceModeSelect.addEventListener("change", () => {
         surfaceMode = surfaceModeSelect.value;
         buildSceneForEdition(currentEdition);
+      });
+
+      tabNormBtn.addEventListener("click", () => {
+        bottomChartMode = "norm";
+        tabNormBtn.classList.add("active");
+        tabMacroBtn.classList.remove("active");
+        updateSelectedNormVisuals();
+      });
+
+      tabMacroBtn.addEventListener("click", () => {
+        bottomChartMode = "macro";
+        tabMacroBtn.classList.add("active");
+        tabNormBtn.classList.remove("active");
+        updateSelectedNormVisuals();
       });
 
       playBtn.addEventListener("click", () => {
@@ -1367,27 +1881,28 @@
           clearInterval(playTimer);
           playTimer = null;
           playBtn.classList.remove("active");
-          playBtn.textContent = "▶ Динаміка 2001→2026";
+          playBtn.textContent = "▶ 2013→2025";
           return;
         }
         playBtn.classList.add("active");
-        playBtn.textContent = "⏸ Зупинити";
-        const edIds = DATA.editions.map((e) => e.edition_id);
-        let idx = edIds.indexOf(currentEdition);
-        if (idx === edIds.length - 1) idx = 0;
+        playBtn.textContent = "⏸ Стоп";
+        const statsYears = ["2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"];
+        let idx = statsYears.indexOf(currentEdition);
+        if (idx < 0 || idx === statsYears.length - 1) idx = -1;
 
         playTimer = setInterval(() => {
-          idx = (idx + 1) % edIds.length;
-          currentEdition = edIds[idx];
-          editionSelect.value = currentEdition;
-          buildSceneForEdition(currentEdition);
-          if (idx === edIds.length - 1) {
+          idx = idx + 1;
+          if (idx >= statsYears.length) {
             clearInterval(playTimer);
             playTimer = null;
             playBtn.classList.remove("active");
-            playBtn.textContent = "▶ Динаміка 2001→2026";
+            playBtn.textContent = "▶ 2013→2025";
+            return;
           }
-        }, 700);
+          currentEdition = statsYears[idx];
+          editionSelect.value = currentEdition;
+          buildSceneForEdition(currentEdition);
+        }, 750);
       });
 
       searchInput.addEventListener("keydown", (e) => {
@@ -1406,15 +1921,33 @@
         }
       });
 
-      resetCamBtn.addEventListener("click", () => {
-        lockedSection = null;
-        setHighlightedSection(null);
-        camera.position.set(0, 125, 290);
-        controls.target.set(0, 20, -60);
-        controls.update();
+      flipBtn.addEventListener("click", () => {
+        isFlipped = !isFlipped;
+        targetFlipY = isFlipped ? -1.0 : 1.0;
+        flipBtn.classList.toggle("active", isFlipped);
+        const brandP = document.querySelector(".brand p");
+        if (brandP) {
+          brandP.innerHTML = isFlipped
+            ? "<b>Вгору:</b> фактична судимість (CONVIC ↑) | <b>Вниз:</b> суворість санкції (I<sub>КЗОСН</sub> ↓)"
+            : "<b>Вгору:</b> суворість санкції (I<sub>КЗОСН</sub> ↑) | <b>Вниз:</b> фактична судимість (CONVIC ↓)";
+        }
+        setHighlightedSection(lockedSection || hoveredSection);
       });
 
-      // Resize handler
+      resetCamBtn.addEventListener("click", () => {
+        lockedSection = null;
+        lensMode = "all";
+        lensModeSelect.value = "all";
+        isFlipped = false;
+        targetFlipY = 1.0;
+        flipBtn.classList.remove("active");
+        setHighlightedSection(null);
+        camera.position.set(0, 95, 315);
+        controls.target.set(0, 0, -65);
+        controls.update();
+        buildSceneForEdition(currentEdition);
+      });
+
       function onResize() {
         const container = document.getElementById("viewport-container");
         const w = container.clientWidth;
@@ -1425,12 +1958,21 @@
       }
       window.addEventListener("resize", onResize);
 
-      // Initial render
       onResize();
       buildSceneForEdition(currentEdition);
 
       function animate() {
         requestAnimationFrame(animate);
+        if (Math.abs(currentFlipY - targetFlipY) > 0.001) {
+          currentFlipY += (targetFlipY - currentFlipY) * 0.14;
+          if (Math.abs(currentFlipY) < 0.02) currentFlipY = targetFlipY > 0 ? 0.02 : -0.02;
+          sectionsRoot.scale.y = currentFlipY;
+          subPlaneRoot.scale.y = currentFlipY;
+        } else if (currentFlipY !== targetFlipY) {
+          currentFlipY = targetFlipY;
+          sectionsRoot.scale.y = currentFlipY;
+          subPlaneRoot.scale.y = currentFlipY;
+        }
         controls.update();
         renderer.render(scene, camera);
       }
@@ -1439,4 +1981,3 @@
   </script>
 </body>
 </html>
-

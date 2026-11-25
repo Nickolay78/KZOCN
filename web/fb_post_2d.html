@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>«Розмаїття заборон» та «єдність практики» (2013 vs 2025) — 2D візуалізація</title>
+  <style>
+    :root {
+      --bg-page: #060a12;
+      --panel-bg: #0f172a;
+      --border: rgba(148, 163, 184, 0.25);
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg-page);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 40px;
+    }
+
+    /* Top Control Toolbar (not included in PNG export) */
+    .toolbar {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.94);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+    .ctrl label {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    select, button {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 5px;
+      padding: 4px 9px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    button.btn-primary {
+      background: linear-gradient(135deg, #0284c7, #7c3aed);
+      border-color: #38bdf8;
+      font-weight: 700;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+    }
+    button.btn-primary:hover {
+      filter: brightness(1.12);
+    }
+
+    /* Poster Wrapper */
+    .poster-wrap {
+      margin-top: 18px;
+      width: min(96vw, 1500px);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      position: relative;
+    }
+    canvas#poster-canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Interactive Hover Tooltip */
+    #hover-card {
+      position: fixed;
+      pointer-events: none;
+      background: rgba(10, 15, 29, 0.96);
+      border: 1px solid #38bdf8;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 12px;
+      color: #f8fafc;
+      max-width: 360px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75);
+      display: none;
+      z-index: 100;
+    }
+    #hover-card .hc-top {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 4px;
+      gap: 10px;
+    }
+    #hover-card .hc-conv {
+      color: #f0abfc;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    #hover-card .hc-title {
+      color: #e2e8f0;
+      font-size: 11.5px;
+      margin-bottom: 4px;
+    }
+    #hover-card .hc-sanc {
+      color: #94a3b8;
+      font-size: 10.5px;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+      padding-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="ctrl">
+        <label for="agg-mode">Одиниця по осі X:</label>
+        <select id="agg-mode">
+          <option value="parts">Частини статей (усі норми КК: 808 у 2013 → 965 у 2025)</option>
+          <option value="articles">Цілі статті КК (сума % засуджених по статті та макс. КЗОСН)</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label for="pct-scale">Масштаб % засуджених униз:</label>
+        <select id="pct-scale">
+          <option value="linear_15">Чесний лінійний (0% … 15% — видно реальну концентрацію)</option>
+          <option value="linear_5">Лінійний з акцентом (0% … 5%, піки &gt;5% з підписами)</option>
+          <option value="sqrt">Нелінійний √% (видно і гігантів 14%, і малі статті 0.2–2%)</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label for="theme-mode">Тема постера:</label>
+        <select id="theme-mode">
+          <option value="dark">Темна аналітична (Dark Editorial)</option>
+          <option value="light">Світла публікаційна (Light Academic)</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">
+          <input type="checkbox" id="show-callouts" checked />
+          Підписи головних піків
+        </label>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a href="index.html" style="color:#38bdf8; text-decoration:none; font-size:12px; font-weight:600;">← До 3D-моделі</a>
+      <a href="fb_post_v2.html" style="color:#fde047; text-decoration:none; font-size:12px; font-weight:700; padding:4px 9px; border:1px solid rgba(253,224,71,0.5); border-radius:6px; background:rgba(253,224,71,0.12);">✨ 2D v2</a>
+      <a href="deciles.html" style="color:#f0abfc; text-decoration:none; font-size:12px; font-weight:700; padding:4px 9px; border:1px solid rgba(232,121,249,0.5); border-radius:6px; background:rgba(232,121,249,0.14);">🏛 10 Децилів</a>
+      <a href="comparator.html" style="color:#4ade80; text-decoration:none; font-size:12px; font-weight:700; padding:4px 9px; border:1px solid rgba(74,222,128,0.5); border-radius:6px; background:rgba(74,222,128,0.14);">⚖️ Компаратор ±%</a>
+      <button class="btn-primary" id="download-btn">💾 Завантажити PNG для Facebook (2400×1680)</button>
+    </div>
+  </div>
+
+  <div class="poster-wrap">
+    <canvas id="poster-canvas" width="2400" height="1680"></canvas>
+  </div>
+
+  <div id="hover-card">
+    <div class="hc-top">
+      <span id="hc-label">ст. 185 ч. 4 (2025)</span>
+      <span id="hc-kzosn">I_КЗОСН = 80.2</span>
+    </div>
+    <div class="hc-conv" id="hc-conv">Засуджено: 7 294 осіб (13.03% усіх засуджених)</div>
+    <div class="hc-title" id="hc-title">Крадіжка</div>
+    <div class="hc-sanc" id="hc-sanc"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app_shell.js"></script>
+  <script>
+    (function () {
+      const DATA = window.KZOCN_DATA;
+      if (!DATA) {
+        alert("Помилка завантаження data.js!");
+        return;
+      }
+
+      const canvas = document.getElementById("poster-canvas");
+      const ctx = canvas.getContext("2d");
+
+      const aggModeSelect = document.getElementById("agg-mode");
+      const pctScaleSelect = document.getElementById("pct-scale");
+      const themeModeSelect = document.getElementById("theme-mode");
+      const showCalloutsChk = document.getElementById("show-callouts");
+      const downloadBtn = document.getElementById("download-btn");
+      const hoverCard = document.getElementById("hover-card");
+
+      // Store hitboxes for interactive hover inspection in the browser
+      let hitBoxes = [];
+
+      const ROMAN_SECS = [
+        "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+        "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"
+      ];
+
+      const SEC_SHORT_NAMES = {
+        "I": "Нацбезпека",
+        "II": "Життя і здоров'я",
+        "III": "Воля і гідність",
+        "IV": "Статева свобода",
+        "V": "Права громадян",
+        "VI": "Власність",
+        "VII": "Госп. діяльність",
+        "VIII": "Довкілля",
+        "IX": "Гром. безпека",
+        "X": "Виробництво",
+        "XI": "Транспорт",
+        "XII": "Гром. порядок",
+        "XIII": "Наркотики",
+        "XIV": "Кордон і мобіліз.",
+        "XV": "Авторитет влади",
+        "XVI": "Кіберзлочини",
+        "XVII": "Службові злочини",
+        "XVIII": "Правосуддя",
+        "XIX": "Військові злочини",
+        "XX": "Мир і безпека людства"
+      };
+
+      function getSevColor(sev, isLight) {
+        if (sev === 4) return isLight ? "#dc2626" : "#ef4444";
+        if (sev === 3) return isLight ? "#ea580c" : "#f97316";
+        if (sev === 2) return isLight ? "#ca8a04" : "#eab308";
+        return isLight ? "#16a34a" : "#22c55e";
+      }
+
+      // Prepare data for a given year ('2013' or '2025')
+      function prepareYearData(yearStr, aggMode) {
+        const raw = (DATA.byEdition[yearStr] || []).slice().sort((a, b) => a[2] - b[2] || a[3] - b[3]);
+        const totalConvic = raw.reduce((acc, r) => acc + (r[12] || 0), 0);
+
+        if (aggMode === "parts") {
+          const items = raw.map((r) => {
+            const conv = r[12] || 0;
+            const pct = totalConvic > 0 ? (conv / totalConvic) * 100 : 0;
+            return {
+              year: yearStr,
+              sec: r[0],
+              artStr: r[1],
+              artCode: r[2],
+              partNum: r[3],
+              label: r[4],
+              kzosn: r[5],
+              sev: r[8],
+              title: DATA.titles[r[9]] || "",
+              sanc: DATA.sanctions[r[11]] || "",
+              convic: conv,
+              pct: pct,
+            };
+          });
+          return { items, totalConvic, totalNorms: raw.length };
+        } else {
+          // Aggregate by whole article
+          const byArt = [];
+          const map = {};
+          raw.forEach((r) => {
+            const aStr = r[1];
+            if (!(aStr in map)) {
+              map[aStr] = byArt.length;
+              byArt.push({
+                year: yearStr,
+                sec: r[0],
+                artStr: aStr,
+                artCode: r[2],
+                partNum: 0,
+                label: `ст. ${aStr}`,
+                kzosn: r[5],
+                sev: r[8],
+                title: DATA.titles[r[9]] || "",
+                sanc: `Частин у статті: 1`,
+                partsCount: 0,
+                convic: 0,
+                pct: 0,
+              });
+            }
+            const obj = byArt[map[aStr]];
+            obj.partsCount += 1;
+            obj.sanc = `Частин у статті: ${obj.partsCount}`;
+            if (r[5] > obj.kzosn) {
+              obj.kzosn = r[5];
+              obj.sev = r[8];
+            }
+            obj.convic += r[12] || 0;
+          });
+          byArt.forEach((o) => {
+            o.pct = totalConvic > 0 ? (o.convic / totalConvic) * 100 : 0;
+          });
+          return { items: byArt, totalConvic, totalNorms: raw.length };
+        }
+      }
+
+      function renderPoster() {
+        hitBoxes = [];
+        const W = canvas.width;   // 2400
+        const H = canvas.height;  // 1680
+        const aggMode = aggModeSelect.value;
+        const pctScale = pctScaleSelect.value;
+        const isLight = themeModeSelect.value === "light";
+        const showCallouts = showCalloutsChk.checked;
+
+        // Palette
+        const bgMain = isLight ? "#f8fafc" : "#070b14";
+        const bgCard = isLight ? "#ffffff" : "#0c1322";
+        const borderCard = isLight ? "#cbd5e1" : "#1e293b";
+        const textMain = isLight ? "#0f172a" : "#f8fafc";
+        const textSub = isLight ? "#475569" : "#94a3b8";
+        const gridColor = isLight ? "rgba(100, 116, 139, 0.18)" : "rgba(148, 163, 184, 0.14)";
+        const secLineColor = isLight ? "rgba(15, 23, 42, 0.22)" : "rgba(56, 189, 248, 0.24)";
+        const zeroAxisColor = isLight ? "#0f172a" : "#e2e8f0";
+        const convicBarColor = isLight ? "#7c3aed" : "#d946ef";
+        const convicPeakColor = isLight ? "#be185d" : "#f43f5e";
+
+        // Background
+        ctx.fillStyle = bgMain;
+        ctx.fillRect(0, 0, W, H);
+
+        // Header Title Block
+        const padX = 70;
+        ctx.fillStyle = textMain;
+        ctx.font = "bold 40px 'Segoe UI', sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("«РОЗМАЇТТЯ ЗАБОРОН» ТА «ЄДНІСТЬ ПРАКТИКИ»", padX, 66);
+
+        ctx.fillStyle = isLight ? "#0284c7" : "#38bdf8";
+        ctx.font = "600 24px 'Segoe UI', sans-serif";
+        ctx.fillText(
+          "Загальна динаміка тексту Особливої частини КК України (I_КЗОСН ↑) та практики його застосування судами (% засуджених ↓): 2013 vs 2025",
+          padX,
+          104
+        );
+
+        // Legend on Top Right
+        const legX = W - padX;
+        ctx.font = "600 18px 'Segoe UI', sans-serif";
+        ctx.textAlign = "right";
+        const legItems = [
+          { label: "Особливо тяжкі (AS=4)", col: getSevColor(4, isLight) },
+          { label: "Тяжкі (AS=3)", col: getSevColor(3, isLight) },
+          { label: "Нетяжкі (AS=2)", col: getSevColor(2, isLight) },
+          { label: "Проступки / невеликої тяжкості (AS=1)", col: getSevColor(1, isLight) },
+          { label: "Частка засуджених (% від усіх вироків у році) ↓", col: convicBarColor },
+        ];
+        let curLX = legX;
+        for (let i = legItems.length - 1; i >= 0; i--) {
+          const it = legItems[i];
+          ctx.fillStyle = textSub;
+          ctx.fillText(it.label, curLX, 64);
+          const tw = ctx.measureText(it.label).width;
+          ctx.fillStyle = it.col;
+          ctx.beginPath();
+          ctx.arc(curLX - tw - 12, 58, 7, 0, Math.PI * 2);
+          ctx.fill();
+          curLX -= tw + 42;
+        }
+
+        // Draw the 2 Panels: 2013 (Top) and 2025 (Bottom)
+        drawYearPanel({
+          yearStr: "2013",
+          panelTitle: "2013 РІК — ДО РЕФОРМИ ПРОСТУПКІВ ТА ПОВНОМАСШТАБНОЇ ВІЙНИ",
+          topY: 132,
+          panelH: 710,
+          padX,
+          W,
+          aggMode,
+          pctScale,
+          isLight,
+          showCallouts,
+          bgCard,
+          borderCard,
+          textMain,
+          textSub,
+          gridColor,
+          secLineColor,
+          zeroAxisColor,
+          convicBarColor,
+          convicPeakColor,
+        });
+
+        drawYearPanel({
+          yearStr: "2025",
+          panelTitle: "2025 РІК — РОЗШИРЕННЯ КК (+157 НОРМ), ПРОСТУПКИ ТА ВОЄННА ТРАНСФОРМАЦІЯ ПРАКТИКИ",
+          topY: 874,
+          panelH: 710,
+          padX,
+          W,
+          aggMode,
+          pctScale,
+          isLight,
+          showCallouts,
+          bgCard,
+          borderCard,
+          textMain,
+          textSub,
+          gridColor,
+          secLineColor,
+          zeroAxisColor,
+          convicBarColor,
+          convicPeakColor,
+        });
+
+        // Footer Caption
+        ctx.fillStyle = textSub;
+        ctx.font = "500 17px 'Segoe UI', sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(
+          "Методологія: Індекс контекстної законодавчої оцінки суспільної небезпечності «In Context» (проф. М. В. Карчевський) | Статистика судимості: Форма № 6 ДСА України (показник CONVIC, проєкт CrimeDataLab)",
+          padX,
+          H - 28
+        );
+        ctx.textAlign = "right";
+        ctx.fillText("github.com/Nickolay78/KZOCN", W - padX, H - 28);
+      }
+
+      function drawYearPanel(cfg) {
+        const {
+          yearStr,
+          panelTitle,
+          topY,
+          panelH,
+          padX,
+          W,
+          aggMode,
+          pctScale,
+          isLight,
+          showCallouts,
+          bgCard,
+          borderCard,
+          textMain,
+          textSub,
+          gridColor,
+          secLineColor,
+          zeroAxisColor,
+          convicBarColor,
+          convicPeakColor,
+        } = cfg;
+
+        const { items, totalConvic, totalNorms } = prepareYearData(yearStr, aggMode);
+        const N = items.length;
+
+        // Card container
+        const cardX = padX - 16;
+        const cardW = W - (padX - 16) * 2;
+        ctx.fillStyle = bgCard;
+        ctx.strokeStyle = borderCard;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(cardX, topY, cardW, panelH, 14);
+        ctx.fill();
+        ctx.stroke();
+
+        // Compute summary metrics for this year
+        const zeroCount = items.filter((d) => d.convic === 0).length;
+        const zeroPct = ((zeroCount / N) * 100).toFixed(1);
+        const sortedByConv = [...items].sort((a, b) => b.convic - a.convic);
+        const top10Pct = sortedByConv.slice(0, 10).reduce((a, b) => a + b.pct, 0).toFixed(1);
+        const avgNomKzosn = (items.reduce((a, b) => a + b.kzosn, 0) / N).toFixed(1);
+        const weightedKzosn = (
+          items.reduce((a, b) => a + b.kzosn * b.convic, 0) / Math.max(1, totalConvic)
+        ).toFixed(1);
+
+        // Panel Title & Summary KPI Strip
+        ctx.fillStyle = textMain;
+        ctx.font = "bold 23px 'Segoe UI', sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(panelTitle, cardX + 24, topY + 38);
+
+        ctx.fillStyle = textSub;
+        ctx.font = "600 17px 'Segoe UI', sans-serif";
+        ctx.textAlign = "right";
+        const kpiText =
+          `Норм у КК: ${totalNorms}  |  Засуджено осіб (CONVIC): ${totalConvic.toLocaleString("uk-UA")}  |  ` +
+          `Норм із 0 вироків: ${zeroPct}%  |  Топ-10 складів = ${top10Pct}% усіх засуджених  |  ` +
+          `Середній КЗОСН: номінальний ${avgNomKzosn} vs реальний за вироками ${weightedKzosn}`;
+        ctx.fillText(kpiText, cardX + cardW - 24, topY + 38);
+
+        // Plot Area Geometry
+        const plotL = cardX + 86;
+        const plotR = cardX + cardW - 30;
+        const plotW = plotR - plotL;
+
+        // Horizontal Zero Axis (dividing Upper "Comb" and Lower "Practice Reflection")
+        const axisY = topY + 365;
+        const upMaxH = 248;   // 0..100 KZOSN upward
+        const downMaxH = 285; // 0..Max% CONVIC downward
+
+        // 1. Upper Grid Lines (KZOSN: 25, 50, 75, 100)
+        ctx.font = "500 14px 'Segoe UI', sans-serif";
+        ctx.textAlign = "right";
+        [25, 50, 75, 100].forEach((val) => {
+          const y = axisY - (val / 100) * upMaxH;
+          ctx.strokeStyle = gridColor;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(plotL, y);
+          ctx.lineTo(plotR, y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = textSub;
+          ctx.fillText(`${val}`, plotL - 10, y + 5);
+        });
+
+        // Upper Y-axis title
+        ctx.save();
+        ctx.translate(cardX + 26, axisY - upMaxH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = isLight ? "#0284c7" : "#38bdf8";
+        ctx.font = "bold 15px 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("ТЕКСТ КК: I_КЗОСН (0..100) ↑", 0, 0);
+        ctx.restore();
+
+        // 2. Lower Grid Lines (% of Convicted Persons downward)
+        const maxPctScale = pctScale === "linear_5" ? 5.0 : 15.0;
+        const lowerSteps =
+          pctScale === "sqrt"
+            ? [0.5, 2, 5, 10, 15]
+            : pctScale === "linear_5"
+            ? [1, 2, 3, 4, 5]
+            : [3, 6, 9, 12, 15];
+
+        lowerSteps.forEach((pctVal) => {
+          let normDown = 0;
+          if (pctScale === "sqrt") {
+            normDown = Math.sqrt(pctVal / 15.0);
+          } else {
+            normDown = pctVal / maxPctScale;
+          }
+          const y = axisY + normDown * downMaxH;
+          ctx.strokeStyle = gridColor;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(plotL, y);
+          ctx.lineTo(plotR, y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = isLight ? "#7c3aed" : "#e879f9";
+          ctx.textAlign = "right";
+          ctx.fillText(`${pctVal}%`, plotL - 10, y + 5);
+        });
+
+        // Lower Y-axis title
+        ctx.save();
+        ctx.translate(cardX + 26, axisY + downMaxH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = isLight ? "#7c3aed" : "#e879f9";
+        ctx.font = "bold 15px 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("ПРАКТИКА: % ЗАСУДЖЕНИХ ↓", 0, 0);
+        ctx.restore();
+
+        // 3. Section Boundaries & Alternating Background Bands (I .. XX)
+        const secRanges = [];
+        let curSec = null;
+        let startIdx = 0;
+        items.forEach((it, idx) => {
+          if (it.sec !== curSec) {
+            if (curSec !== null) {
+              secRanges.push({ sec: curSec, start: startIdx, end: idx - 1 });
+            }
+            curSec = it.sec;
+            startIdx = idx;
+          }
+        });
+        if (curSec !== null) {
+          secRanges.push({ sec: curSec, start: startIdx, end: N - 1 });
+        }
+
+        const stepX = plotW / N;
+        const barW = Math.max(1.3, stepX * 0.82);
+
+        secRanges.forEach((sr, sIdx) => {
+          const x1 = plotL + sr.start * stepX;
+          const x2 = plotL + (sr.end + 1) * stepX;
+          const wSec = x2 - x1;
+
+          // Subtle zebra band for every second section
+          if (sIdx % 2 === 1) {
+            ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.03)" : "rgba(255, 255, 255, 0.022)";
+            ctx.fillRect(x1, axisY - upMaxH - 36, wSec, upMaxH + downMaxH + 54);
+          }
+
+          // Vertical section divider
+          ctx.strokeStyle = secLineColor;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(x1, axisY - upMaxH - 36);
+          ctx.lineTo(x1, axisY + downMaxH + 16);
+          ctx.stroke();
+
+          // Section Roman numeral header at top of comb
+          const midX = (x1 + x2) / 2;
+          if (wSec >= 18) {
+            ctx.fillStyle = isLight ? "#0f172a" : "#38bdf8";
+            ctx.font = wSec >= 34 ? "bold 15px 'Segoe UI', sans-serif" : "bold 12px 'Segoe UI', sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(sr.sec, midX, axisY - upMaxH - 18);
+
+            if (wSec >= 78 && SEC_SHORT_NAMES[sr.sec]) {
+              ctx.fillStyle = textSub;
+              ctx.font = "500 11.5px 'Segoe UI', sans-serif";
+              ctx.fillText(SEC_SHORT_NAMES[sr.sec], midX, axisY - upMaxH - 4);
+            }
+          }
+        });
+
+        // 4. Draw Upper "Comb" Bars (KZOSN) and Lower "Reflection" Bars (% CONVIC)
+        const peakCandidates = [];
+
+        items.forEach((it, idx) => {
+          const x = plotL + idx * stepX;
+          const hUp = (it.kzosn / 100) * upMaxH;
+
+          // Upper Bar (KZOSN)
+          ctx.fillStyle = getSevColor(it.sev, isLight);
+          ctx.fillRect(x, axisY - hUp, barW, hUp);
+
+          // Lower Bar (% CONVIC)
+          let hDown = 0;
+          if (it.pct > 0) {
+            let normDown = 0;
+            if (pctScale === "sqrt") {
+              normDown = Math.min(1.0, Math.sqrt(it.pct / 15.0));
+            } else {
+              normDown = Math.min(1.0, it.pct / maxPctScale);
+            }
+            hDown = Math.max(2.0, normDown * downMaxH);
+
+            const isMajorPeak = it.pct >= 1.8;
+            ctx.fillStyle = isMajorPeak ? convicPeakColor : convicBarColor;
+            // Make major conviction spikes slightly wider so they are unmistakable on Facebook compression
+            const downW = isMajorPeak ? Math.max(barW, 3.6) : Math.max(barW, 2.0);
+            ctx.fillRect(x - (downW - barW) / 2, axisY + 1, downW, hDown);
+
+            peakCandidates.push({
+              it,
+              x: x + barW / 2,
+              tipY: axisY + 1 + hDown,
+              pct: it.pct,
+            });
+          }
+
+          // Save hitbox for interactive hover
+          hitBoxes.push({
+            x1: x,
+            x2: x + Math.max(barW, stepX),
+            y1: axisY - upMaxH,
+            y2: axisY + downMaxH,
+            it,
+          });
+        });
+
+        // 5. Horizontal Zero Axis Line (Mirror Plane)
+        ctx.strokeStyle = zeroAxisColor;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(plotL, axisY);
+        ctx.lineTo(plotR, axisY);
+        ctx.stroke();
+
+        // 6. Smart Callout Annotations for Top Conviction Spikes + Notable Wartime Spikes
+        if (showCallouts) {
+          peakCandidates.sort((a, b) => b.pct - a.pct);
+          const selectedPeaks = peakCandidates.slice(0, 9);
+
+          // In 2025, also include notable wartime sections (I: 111-1, XIV: 336, XIX: 407) if not already in top 9
+          if (yearStr === "2025") {
+            ["111-1", "336", "407"].forEach((artTarget) => {
+              const found = peakCandidates.find(
+                (p) => p.it.artStr === artTarget && !selectedPeaks.includes(p)
+              );
+              if (found && found.pct >= 0.4) selectedPeaks.push(found);
+            });
+          }
+
+          // Sort selected peaks left-to-right by X to stagger label heights and prevent any overlap
+          selectedPeaks.sort((a, b) => a.x - b.x);
+          let lastLabelX = -999;
+          let staggerRow = 0;
+
+          selectedPeaks.forEach((pk) => {
+            if (pk.x - lastLabelX < 135) {
+              staggerRow = (staggerRow + 1) % 3;
+            } else {
+              staggerRow = 0;
+            }
+            lastLabelX = pk.x;
+
+            const labelText = `${pk.it.label}: ${pk.pct.toFixed(1)}% (${pk.it.convic.toLocaleString("uk-UA")})`;
+            ctx.font = "bold 13.5px 'Segoe UI', sans-serif";
+            const tw = ctx.measureText(labelText).width;
+            const boxW = tw + 14;
+            const boxH = 22;
+
+            const targetY = Math.min(
+              axisY + downMaxH - 6 - staggerRow * 26,
+              pk.tipY + 14 + staggerRow * 24
+            );
+            const clampedX = Math.max(plotL + boxW / 2 + 4, Math.min(plotR - boxW / 2 - 4, pk.x));
+
+            // Leader line from spike tip to label badge
+            ctx.strokeStyle = isLight ? "rgba(190, 24, 93, 0.55)" : "rgba(244, 63, 94, 0.65)";
+            ctx.lineWidth = 1.3;
+            ctx.beginPath();
+            ctx.moveTo(pk.x, Math.min(pk.tipY, axisY + downMaxH));
+            ctx.lineTo(clampedX, targetY - boxH / 2);
+            ctx.stroke();
+
+            // Pill badge
+            ctx.fillStyle = isLight ? "rgba(255, 255, 255, 0.94)" : "rgba(15, 23, 42, 0.92)";
+            ctx.strokeStyle = isLight ? "#be185d" : "#f43f5e";
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.roundRect(clampedX - boxW / 2, targetY - boxH / 2, boxW, boxH, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = isLight ? "#9d174d" : "#ffe4e6";
+            ctx.textAlign = "center";
+            ctx.fillText(labelText, clampedX, targetY + 4.5);
+          });
+        }
+      }
+
+      // Interactive tooltip on mouse move
+      canvas.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+
+        const hit = hitBoxes.find((b) => mx >= b.x1 && mx <= b.x2 && my >= b.y1 && my <= b.y2);
+        if (hit) {
+          const it = hit.it;
+          hoverCard.style.display = "block";
+          hoverCard.style.left = Math.min(window.innerWidth - 370, e.clientX + 16) + "px";
+          hoverCard.style.top = Math.max(12, e.clientY - 20) + "px";
+          document.getElementById("hc-label").textContent = `${it.label} (Розділ ${it.sec}, ${it.year} р.)`;
+          document.getElementById("hc-kzosn").textContent = `I_КЗОСН = ${it.kzosn.toFixed(1)}`;
+          document.getElementById("hc-conv").textContent =
+            `Засуджено: ${it.convic.toLocaleString("uk-UA")} осіб (${it.pct.toFixed(3)}% від усіх засуджених у ${it.year} р.)`;
+          document.getElementById("hc-title").textContent = it.title;
+          document.getElementById("hc-sanc").textContent = it.sanc;
+        } else {
+          hoverCard.style.display = "none";
+        }
+      });
+
+      canvas.addEventListener("mouseleave", () => {
+        hoverCard.style.display = "none";
+      });
+
+      // Controls Listeners
+      [aggModeSelect, pctScaleSelect, themeModeSelect, showCalloutsChk].forEach((el) => {
+        el.addEventListener("change", renderPoster);
+      });
+
+      // Download High-Res PNG
+      downloadBtn.addEventListener("click", () => {
+        const link = document.createElement("a");
+        const modeTag = aggModeSelect.value;
+        const scaleTag = pctScaleSelect.value;
+        link.download = `KZOSN_vs_CONVIC_2013_2025_${modeTag}_${scaleTag}.png`;
+        link.href = canvas.toDataURL("image/png", 1.0);
+        link.click();
+      });
+
+      // Initial render
+      renderPoster();
+    })();
+  </script>
+</body>
+</html>

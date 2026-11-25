@@ -44,25 +44,33 @@ def main():
     cur.execute("SELECT * FROM editions")
     editions = [dict(r) for r in cur.fetchall()]
 
-    # Fetch all part records
-    cur.execute("""
+    # Fetch all part records including parsed punishment vector columns S..AR
+    vec_cols = [
+        "S", "T", "U", "V", "W", "X", "Y", "Z", "AA", "PN_MAX", "PN_MIN",
+        "AB", "AC", "AD", "AE", "AF", "AG", "AH", "AI", "AJ", "AK",
+        "AL", "AM", "AN", "AO", "AP", "AQ", "AR"
+    ]
+    cur.execute(f"""
         SELECT
             edition_id, section_roman, article_str, article_code, part_num,
             short_label, article_title, disposition_text, sanction_text,
             rank_n_i, n_max, index_kzosn, [AS] as severity,
-            S, T, U, V, W, X, Y, Z, AA, PN_MAX, PN_MIN, AB, AC, AD, AE, AF, AG, AH, AI, AJ, AK, AL, AM, AN, AO, AP, AQ, AR
+            convic_count, convic_rank, convic_n_max, index_convic, convic_match_status,
+            {", ".join(vec_cols)}
         FROM article_parts_kzosn
         ORDER BY article_code, part_num
     """)
     rows = cur.fetchall()
 
-    # Deduplicate strings into lookup tables to keep data.js compact and fast
+    # Deduplicate strings and punishment vectors into lookup tables to keep data.js compact and fast
     titles_map = {}
     titles_list = []
     sanc_map = {}
     sanc_list = []
     disp_map = {}
     disp_list = []
+    vec_map = {}
+    vec_list = []
 
     def get_id(text, mp, lst):
         if text not in mp:
@@ -78,9 +86,19 @@ def main():
         norm_key = f"{r['article_str']}|{r['part_num']}"
         tid = get_id(r["article_title"], titles_map, titles_list)
         sid = get_id(r["sanction_text"], sanc_map, sanc_list)
-        # Keep disposition truncated to 350 chars to keep bundle super fast while informative
         disp_short = r["disposition_text"][:350] + ("..." if len(r["disposition_text"]) > 350 else "")
         did = get_id(disp_short, disp_map, disp_list)
+
+        convic_cnt = int(r["convic_count"]) if r["convic_count"] is not None else None
+        idx_convic = round(float(r["index_convic"] or 0.0), 2)
+        c_rank = int(r["convic_rank"]) if r["convic_rank"] is not None else None
+        c_nmax = int(r["convic_n_max"]) if r["convic_n_max"] is not None else None
+
+        vec_tuple = tuple(round(float(r[c] or 0.0), 4) for c in vec_cols)
+        if vec_tuple not in vec_map:
+            vec_map[vec_tuple] = len(vec_list)
+            vec_list.append(list(vec_tuple))
+        vid = vec_map[vec_tuple]
 
         item = [
             r["section_roman"],           # 0: section
@@ -95,6 +113,11 @@ def main():
             tid,                          # 9: title_id
             did,                          # 10: disp_id
             sid,                          # 11: sanc_id
+            convic_cnt,                   # 12: convic_count (number of convicted persons or null)
+            idx_convic,                   # 13: index_convic (0..100)
+            c_rank,                       # 14: convic_rank (M_i)
+            c_nmax,                       # 15: convic_n_max (M_max)
+            vid,                          # 16: vec_id (punishment vector S..AR index)
         ]
         by_edition[ed].append(item)
 
@@ -109,17 +132,23 @@ def main():
             }
         history_by_norm[norm_key]["title_id"] = tid
         history_by_norm[norm_key]["series"][ed] = [
-            round(r["index_kzosn"], 2),
-            r["rank_n_i"],
-            r["n_max"],
-            r["severity"],
-            sid,
-            did
+            round(r["index_kzosn"], 2),   # 0: index_kzosn
+            r["rank_n_i"],                # 1: rank_n_i
+            r["n_max"],                   # 2: n_max
+            r["severity"],                # 3: severity
+            sid,                          # 4: sanc_id
+            did,                          # 5: disp_id
+            convic_cnt,                   # 6: convic_count
+            idx_convic,                   # 7: index_convic
+            c_rank,                       # 8: convic_rank
+            c_nmax,                       # 9: convic_n_max
         ]
 
     payload = {
         "editions": editions,
         "sections": [{"id": rom, "num": idx + 1, "title": SECTION_TITLES[rom]} for idx, rom in enumerate(ROMAN_ORDER)],
+        "vecCols": vec_cols,
+        "vectors": vec_list,
         "titles": titles_list,
         "sanctions": sanc_list,
         "dispositions": disp_list,
@@ -138,4 +167,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

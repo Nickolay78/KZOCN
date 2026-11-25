@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Інфографіка v2: «Розмаїття заборон» та «єдність практики» (2013 vs 2025)</title>
+  <style>
+    :root {
+      --bg-page: #050811;
+      --panel-bg: #0f172a;
+      --border: rgba(148, 163, 184, 0.25);
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg-page);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 44px;
+    }
+
+    /* Site Navigation Tabs + Controls Toolbar */
+    .top-nav {
+      width: 100%;
+      background: #090e1a;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 8px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .nav-tab {
+      text-decoration: none;
+      color: #cbd5e1;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 6px 13px;
+      border-radius: 7px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      transition: all 0.15s;
+    }
+    .nav-tab:hover {
+      border-color: #38bdf8;
+      color: #fff;
+    }
+    .nav-tab.active {
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      color: #fff;
+      border-color: #7dd3fc;
+      box-shadow: 0 2px 12px rgba(56, 189, 248, 0.3);
+    }
+
+    .toolbar {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.94);
+      border-bottom: 1px solid var(--border);
+      padding: 9px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+    .ctrl label {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    select, button {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    button.btn-primary {
+      background: linear-gradient(135deg, #e11d48, #7c3aed);
+      border-color: #f43f5e;
+      font-weight: 700;
+      padding: 7px 15px;
+      font-size: 12.5px;
+      box-shadow: 0 4px 16px rgba(244, 63, 94, 0.3);
+    }
+    button.btn-primary:hover {
+      filter: brightness(1.12);
+    }
+
+    /* Poster Canvas Container */
+    .poster-wrap {
+      margin-top: 16px;
+      width: min(96vw, 1540px);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      position: relative;
+    }
+    canvas#poster-canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Interactive Hover Card */
+    #hover-card {
+      position: fixed;
+      pointer-events: none;
+      background: rgba(8, 13, 26, 0.96);
+      border: 1px solid #38bdf8;
+      border-radius: 9px;
+      padding: 11px 14px;
+      font-size: 12px;
+      color: #f8fafc;
+      max-width: 380px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8);
+      display: none;
+      z-index: 100;
+    }
+    #hover-card .hc-top {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 4px;
+      gap: 10px;
+      font-size: 13px;
+    }
+    #hover-card .hc-conv {
+      color: #fda4af;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    #hover-card .hc-title {
+      color: #e2e8f0;
+      font-size: 11.5px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    #hover-card .hc-sanc {
+      color: #94a3b8;
+      font-size: 10.5px;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+      padding-top: 4px;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <div class="nav-tabs">
+      <a href="index.html" class="nav-tab">🌐 Вкладка 1: Інтерактивна 3D-модель КК</a>
+      <a href="fb_post_2d.html" class="nav-tab">📊 Вкладка 2: 2D-Постер v1 (Базовий)</a>
+      <a href="fb_post_v2.html" class="nav-tab active">✨ Вкладка 3: 2D-Інфографіка v2 (Гребінець)</a>
+      <a href="deciles.html" class="nav-tab">🏛 Вкладка 4: 10 Децилів КЗОСН</a>
+      <a href="comparator.html" class="nav-tab">⚖️ Вкладка 5: Компаратор близьких заборон (±1%, ±3%, ±5%)</a>
+    </div>
+    <div style="font-size:12px; color:#94a3b8;">
+      Наведіть курсор на будь-яку лінію постера для перегляду статті та санкції
+    </div>
+  </nav>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="ctrl">
+        <label for="color-concept">Ідея №1 (Колір верху):</label>
+        <select id="color-concept">
+          <option value="monolith">Моноліт Закону (сталевий) + Наскрізні промені Практики (золотий/багряний)</option>
+          <option value="hybrid">Гібридний (приглушена тяжкість AS=1..4 + яскраві промені Практики)</option>
+          <option value="traffic">Класичний світлофор тяжкості ст. 12 КК (AS=1..4)</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label for="order-mode">Ідея №2 (Форма гребінця):</label>
+        <select id="order-mode">
+          <option value="section_slopes">20 гірських схилів розділів (за спаданням КЗОСН у кожному розділі)</option>
+          <option value="article_order">За порядком номерів статей у КК (зі згладженим силуетом)</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label for="callout-mode">Ідея №3 (Підписи піків):</label>
+        <select id="callout-mode">
+          <option value="clustered">Груповані по статтях без накладань + воєнні акценти</option>
+          <option value="parts">Окремі частини статей (Топ-10 без накладань)</option>
+          <option value="none">Без текстових плашок (чиста графіка)</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label for="scale-mode">Ідея №4 (Шкала % униз):</label>
+        <select id="scale-mode">
+          <option value="sqrt">Збалансована √% (видно і гігантів 14%, і воєнні статті 0.5–3%)</option>
+          <option value="linear">Лінійна 0..15% (абсолютна пропорція)</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label for="theme-select">Тема:</label>
+        <select id="theme-select">
+          <option value="dark">Темна преміальна (Dark Editorial)</option>
+          <option value="light">Світла журнальна (Light Economist)</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="download-btn">💾 Завантажити PNG для Facebook (2400×1800)</button>
+  </div>
+
+  <div class="poster-wrap">
+    <canvas id="poster-canvas" width="2400" height="1800"></canvas>
+  </div>
+
+  <div id="hover-card">
+    <div class="hc-top">
+      <span id="hc-label">ст. 185 ч. 4</span>
+      <span id="hc-kzosn">I_КЗОСН = 80.2</span>
+    </div>
+    <div class="hc-conv" id="hc-conv"></div>
+    <div class="hc-title" id="hc-title"></div>
+    <div class="hc-sanc" id="hc-sanc"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app_shell.js"></script>
+  <script>
+    (function () {
+      const DATA = window.KZOCN_DATA;
+      if (!DATA) {
+        alert("Помилка завантаження data.js!");
+        return;
+      }
+
+      const canvas = document.getElementById("poster-canvas");
+      const ctx = canvas.getContext("2d");
+
+      const colorConceptSel = document.getElementById("color-concept");
+      const orderModeSel = document.getElementById("order-mode");
+      const calloutModeSel = document.getElementById("callout-mode");
+      const scaleModeSel = document.getElementById("scale-mode");
+      const themeSel = document.getElementById("theme-select");
+      const downloadBtn = document.getElementById("download-btn");
+      const hoverCard = document.getElementById("hover-card");
+
+      let hitBoxes = [];
+
+      const SEC_SHORT_NAMES = {
+        "I": "Нацбезпека",
+        "II": "Життя і здоров'я",
+        "III": "Воля і гідність",
+        "IV": "Статева свобода",
+        "V": "Права громадян",
+        "VI": "Власність",
+        "VII": "Госп. діяльність",
+        "VIII": "Довкілля",
+        "IX": "Гром. безпека",
+        "X": "Виробництво",
+        "XI": "Транспорт",
+        "XII": "Гром. порядок",
+        "XIII": "Наркотики",
+        "XIV": "Мобіліз. і кордон",
+        "XV": "Авторитет влади",
+        "XVI": "Кіберзлочини",
+        "XVII": "Службові злочини",
+        "XVIII": "Правосуддя",
+        "XIX": "Військові злочини",
+        "XX": "Мир і безпека"
+      };
+
+      function getSevColor(sev, alpha = 1.0, isLight = false) {
+        if (sev === 4) return isLight ? `rgba(220, 38, 38, ${alpha})` : `rgba(239, 68, 68, ${alpha})`;
+        if (sev === 3) return isLight ? `rgba(234, 88, 12, ${alpha})` : `rgba(249, 115, 22, ${alpha})`;
+        if (sev === 2) return isLight ? `rgba(202, 138, 4, ${alpha})` : `rgba(234, 179, 8, ${alpha})`;
+        return isLight ? `rgba(22, 163, 74, ${alpha})` : `rgba(34, 197, 94, ${alpha})`;
+      }
+
+      // Prepare data for 2013 or 2025
+      function prepareYearData(yearStr, orderMode) {
+        const raw = (DATA.byEdition[yearStr] || []).slice();
+        const totalConvic = raw.reduce((acc, r) => acc + (r[12] || 0), 0);
+
+        // Group by section I..XX to preserve section order horizontally
+        const bySec = {};
+        DATA.sections.forEach((s) => (bySec[s.id] = []));
+        raw.forEach((r) => {
+          const conv = r[12] || 0;
+          const pct = totalConvic > 0 ? (conv / totalConvic) * 100 : 0;
+          const item = {
+            year: yearStr,
+            sec: r[0],
+            artStr: r[1],
+            artCode: r[2],
+            partNum: r[3],
+            label: r[4],
+            kzosn: r[5],
+            rankNi: r[6],
+            nMax: r[7],
+            sev: r[8],
+            title: DATA.titles[r[9]] || "",
+            sanc: DATA.sanctions[r[11]] || "",
+            convic: conv,
+            pct: pct,
+          };
+          if (bySec[item.sec]) bySec[item.sec].push(item);
+        });
+
+        const ordered = [];
+        const secRanges = [];
+
+        DATA.sections.forEach((s) => {
+          const arr = bySec[s.id] || [];
+          if (arr.length === 0) return;
+          if (orderMode === "section_slopes") {
+            // Idea #2: Smooth mountain slope from highest KZOSN to lowest inside each section
+            arr.sort((a, b) => b.kzosn - a.kzosn || b.convic - a.convic || a.artCode - b.artCode || a.partNum - b.partNum);
+          } else {
+            arr.sort((a, b) => a.artCode - b.artCode || a.partNum - b.partNum);
+          }
+          const startIdx = ordered.length;
+          ordered.push(...arr);
+          secRanges.push({
+            sec: s.id,
+            start: startIdx,
+            end: ordered.length - 1,
+            count: arr.length,
+            secConvicPct: arr.reduce((a, b) => a + b.pct, 0),
+          });
+        });
+
+        // Also compute article-level aggregated shares for smart clustered callouts (Idea #3)
+        const artClusters = {};
+        ordered.forEach((it, idx) => {
+          if (it.convic <= 0) return;
+          if (!artClusters[it.artStr]) {
+            artClusters[it.artStr] = {
+              artStr: it.artStr,
+              sec: it.sec,
+              title: it.title,
+              totalPct: 0,
+              totalConvic: 0,
+              parts: [],
+              bestIdx: idx,
+              bestPartPct: -1,
+              bestPartNum: it.partNum,
+              bestPartKzosn: it.kzosn,
+            };
+          }
+          const cl = artClusters[it.artStr];
+          cl.totalPct += it.pct;
+          cl.totalConvic += it.convic;
+          cl.parts.push({ partNum: it.partNum, pct: it.pct, convic: it.convic, idx, kzosn: it.kzosn });
+          if (it.pct > cl.bestPartPct) {
+            cl.bestPartPct = it.pct;
+            cl.bestIdx = idx;
+            cl.bestPartNum = it.partNum;
+            cl.bestPartKzosn = it.kzosn;
+          }
+        });
+
+        return {
+          items: ordered,
+          secRanges,
+          artClusters: Object.values(artClusters),
+          totalConvic,
+          totalNorms: ordered.length,
+        };
+      }
+
+      function renderPoster() {
+        hitBoxes = [];
+        const W = canvas.width;   // 2400
+        const H = canvas.height;  // 1800
+
+        const colorConcept = colorConceptSel.value;
+        const orderMode = orderModeSel.value;
+        const calloutMode = calloutModeSel.value;
+        const scaleMode = scaleModeSel.value;
+        const isLight = themeSel.value === "light";
+
+        // Theme palette
+        const bgMain = isLight ? "#f1f5f9" : "#050912";
+        const bgCard = isLight ? "#ffffff" : "#0b1221";
+        const borderCard = isLight ? "#cbd5e1" : "#1e293b";
+        const textMain = isLight ? "#0f172a" : "#f8fafc";
+        const textSub = isLight ? "#475569" : "#94a3b8";
+        const padX = 64;
+
+        ctx.fillStyle = bgMain;
+        ctx.fillRect(0, 0, W, H);
+
+        // =========================================================================
+        // 1. TOP POSTER HEADER (Clean 2-row hierarchy + Visual Legend)
+        // =========================================================================
+        ctx.fillStyle = textMain;
+        ctx.font = "800 42px 'Segoe UI', sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("«РОЗМАЇТТЯ ЗАБОРОН» ТА «ЄДНІСТЬ ПРАКТИКИ»", padX, 62);
+
+        ctx.fillStyle = isLight ? "#0369a1" : "#38bdf8";
+        ctx.font = "600 22px 'Segoe UI', sans-serif";
+        ctx.fillText(
+          "Динаміка тексту Особливої частини КК України (індекс суворості санкцій I_КЗОСН ↑) та практики його застосування судами (% засуджених ↓)",
+          padX,
+          98
+        );
+
+        // Legend Box on Top Right
+        const legItems =
+          colorConcept === "monolith"
+            ? [
+                { col: isLight ? "#94a3b8" : "#334155", label: "«Мовчазний масив КК» (0 або <0.15% вироків)" },
+                { col: "#f59e0b", label: "Помітна судова практика (0.15% – 1.5% вироків)" },
+                { col: "#f43f5e", label: "Ядро судової репресії (≥1.5% усіх вироків — наскрізні промені ↑↓)" },
+              ]
+            : [
+                { col: getSevColor(4, 1, isLight), label: "Особливо тяжкі (AS=4)" },
+                { col: getSevColor(3, 1, isLight), label: "Тяжкі (AS=3)" },
+                { col: getSevColor(2, 1, isLight), label: "Нетяжкі (AS=2)" },
+                { col: getSevColor(1, 1, isLight), label: "Проступки (AS=1)" },
+                { col: "#f43f5e", label: "Частка засуджених (% вироків) ↓" },
+              ];
+
+        let curLX = W - padX;
+        ctx.font = "600 16.5px 'Segoe UI', sans-serif";
+        ctx.textAlign = "right";
+        for (let i = legItems.length - 1; i >= 0; i--) {
+          const li = legItems[i];
+          ctx.fillStyle = textSub;
+          ctx.fillText(li.label, curLX, 60);
+          const tw = ctx.measureText(li.label).width;
+          ctx.fillStyle = li.col;
+          ctx.beginPath();
+          ctx.roundRect(curLX - tw - 22, 45, 15, 15, 4);
+          ctx.fill();
+          curLX -= tw + 44;
+        }
+
+        // =========================================================================
+        // 2. PANEL 1: 2013 YEAR (TOP)
+        // =========================================================================
+        drawYearPanel({
+          yearStr: "2013",
+          eraBadge: "2013 РІК",
+          eraSubtitle: "До запровадження кримінальних проступків та повномасштабної війни",
+          topY: 124,
+          panelH: 730,
+          padX,
+          W,
+          colorConcept,
+          orderMode,
+          calloutMode,
+          scaleMode,
+          isLight,
+          bgCard,
+          borderCard,
+          textMain,
+          textSub,
+        });
+
+        // =========================================================================
+        // 3. CENTRAL TRANSFORMATION RIBBON (2013 -> 2025 KEY SHIFTS)
+        // =========================================================================
+        const midY = 868;
+        const ribH = 62;
+        ctx.fillStyle = isLight ? "#e2e8f0" : "rgba(15, 23, 42, 0.95)";
+        ctx.strokeStyle = isLight ? "#94a3b8" : "rgba(56, 189, 248, 0.35)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(padX - 12, midY, W - (padX - 12) * 2, ribH, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        const shifts = [
+          "1. ІНФЛЯЦІЯ ЗАБОРОН: текст КК зріс із 808 до 965 норм (+157 складів), але 52.6% норм у 2025 р. мають 0 вироків",
+          "2. НОЖИЦІ СУВОРОСТІ: номінальний КЗОСН КК незмінний (~60), а реальний за вироками впав із 58.2 до 44.0 (-14.2 п.)",
+          "3. ЗСУВ КРАДІЖОК (СТ. 185): у 2013 р. ч. 1–3 давали 35.5% вироків, а з 2022 р. вся маса перейшла у тяжку ч. 4 (13.0%)",
+          "4. ВОЄННИЙ ФОКУС 2025: Розділ I (Нацбезпека) зріс із 0.0% до 3.3%, Розділ XIV (Мобілізація) — до 1.9%, Розділ XIX — до 2.1%",
+        ];
+        const colW = (W - padX * 2) / 4;
+        shifts.forEach((sh, i) => {
+          const sx = padX + i * colW + 8;
+          ctx.fillStyle = isLight ? "#0f172a" : "#e2e8f0";
+          ctx.font = "600 14.5px 'Segoe UI', sans-serif";
+          ctx.textAlign = "left";
+          // Split into 2 lines for readability
+          const parts = sh.split(": ");
+          ctx.fillStyle = i === 2 || i === 3 ? (isLight ? "#be185d" : "#fda4af") : (isLight ? "#0369a1" : "#38bdf8");
+          ctx.font = "bold 14px 'Segoe UI', sans-serif";
+          ctx.fillText(parts[0] + ":", sx, midY + 24);
+          ctx.fillStyle = isLight ? "#334155" : "#cbd5e1";
+          ctx.font = "500 13.5px 'Segoe UI', sans-serif";
+          ctx.fillText(parts[1] || "", sx, midY + 46);
+        });
+
+        // =========================================================================
+        // 4. PANEL 2: 2025 YEAR (BOTTOM)
+        // =========================================================================
+        drawYearPanel({
+          yearStr: "2025",
+          eraBadge: "2025 РІК",
+          eraSubtitle: "Ущільнення заборон (+19.4% норм у КК), реформа проступків та воєнна трансформація судимості",
+          topY: 944,
+          panelH: 775,
+          padX,
+          W,
+          colorConcept,
+          orderMode,
+          calloutMode,
+          scaleMode,
+          isLight,
+          bgCard,
+          borderCard,
+          textMain,
+          textSub,
+        });
+
+        // =========================================================================
+        // 5. FOOTER
+        // =========================================================================
+        ctx.fillStyle = textSub;
+        ctx.font = "500 16.5px 'Segoe UI', sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(
+          "Методологія: Індекс контекстної законодавчої оцінки суспільної небезпечності «In Context» (проф. М. В. Карчевський)  |  Дані судової статистики: Форма № 6 ДСА України (показник CONVIC, проєкт CrimeDataLab)",
+          padX,
+          H - 26
+        );
+        ctx.textAlign = "right";
+        ctx.fillText("github.com/Nickolay78/KZOCN", W - padX, H - 26);
+      }
+
+      function drawYearPanel(cfg) {
+        const {
+          yearStr,
+          eraBadge,
+          eraSubtitle,
+          topY,
+          panelH,
+          padX,
+          W,
+          colorConcept,
+          orderMode,
+          calloutMode,
+          scaleMode,
+          isLight,
+          bgCard,
+          borderCard,
+          textMain,
+          textSub,
+        } = cfg;
+
+        const { items, secRanges, artClusters, totalConvic, totalNorms } = prepareYearData(yearStr, orderMode);
+        const N = items.length;
+
+        const cardX = padX - 12;
+        const cardW = W - (padX - 12) * 2;
+
+        // Card background
+        ctx.fillStyle = bgCard;
+        ctx.strokeStyle = borderCard;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(cardX, topY, cardW, panelH, 14);
+        ctx.fill();
+        ctx.stroke();
+
+        // Compute KPIs
+        const zeroCount = items.filter((d) => d.convic === 0).length;
+        const zeroPct = ((zeroCount / N) * 100).toFixed(1);
+        const sortedByConv = [...items].sort((a, b) => b.convic - a.convic);
+        const top10Pct = sortedByConv.slice(0, 10).reduce((a, b) => a + b.pct, 0).toFixed(1);
+        const top25Pct = sortedByConv.slice(0, 25).reduce((a, b) => a + b.pct, 0).toFixed(1);
+        const avgNomKzosn = (items.reduce((a, b) => a + b.kzosn, 0) / N).toFixed(1);
+        const weightedKzosn = (
+          items.reduce((a, b) => a + b.kzosn * b.convic, 0) / Math.max(1, totalConvic)
+        ).toFixed(1);
+
+        // =========================================================================
+        // IDEA #5: Clean Non-Overlapping Header Bar with Separate KPI Pills
+        // =========================================================================
+        // Year Pill on Left
+        ctx.fillStyle = yearStr === "2013" ? "#0284c7" : "#e11d48";
+        ctx.beginPath();
+        ctx.roundRect(cardX + 20, topY + 14, 132, 36, 8);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "800 21px 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(eraBadge, cardX + 86, topY + 39);
+
+        // Subtitle next to Year Pill
+        ctx.fillStyle = textMain;
+        ctx.font = "700 20px 'Segoe UI', sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(eraSubtitle, cardX + 166, topY + 38);
+
+        // Four Separate KPI Badges on the Right
+        const kpiPills = [
+          { label: "Норм у КК", val: `${totalNorms}`, col: isLight ? "#0369a1" : "#38bdf8" },
+          { label: "Засуджено осіб", val: totalConvic.toLocaleString("uk-UA"), col: isLight ? "#7c3aed" : "#e879f9" },
+          { label: "Мертві норми (0 вироків)", val: `${zeroCount} (${zeroPct}%)`, col: isLight ? "#dc2626" : "#f87171" },
+          { label: "Топ-25 норм дають", val: `${top25Pct}% вироків`, col: isLight ? "#d97706" : "#fbbf24" },
+          { label: "КЗОСН (номін. → реальний)", val: `${avgNomKzosn} → ${weightedKzosn}`, col: isLight ? "#0f766e" : "#2dd4bf" },
+        ];
+
+        let pillRightX = cardX + cardW - 20;
+        for (let i = kpiPills.length - 1; i >= 0; i--) {
+          const kp = kpiPills[i];
+          ctx.font = "700 15px 'Segoe UI', sans-serif";
+          const wVal = ctx.measureText(kp.val).width;
+          ctx.font = "500 12.5px 'Segoe UI', sans-serif";
+          const wLab = ctx.measureText(kp.label + ": ").width;
+          const pw = wLab + wVal + 22;
+
+          ctx.fillStyle = isLight ? "#f8fafc" : "rgba(30, 41, 59, 0.85)";
+          ctx.strokeStyle = isLight ? "#cbd5e1" : "rgba(148, 163, 184, 0.28)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.roundRect(pillRightX - pw, topY + 14, pw, 36, 8);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = textSub;
+          ctx.font = "500 12.5px 'Segoe UI', sans-serif";
+          ctx.textAlign = "left";
+          ctx.fillText(kp.label + ":", pillRightX - pw + 11, topY + 37);
+
+          ctx.fillStyle = kp.col;
+          ctx.font = "700 15px 'Segoe UI', sans-serif";
+          ctx.fillText(kp.val, pillRightX - pw + 11 + wLab, topY + 37);
+
+          pillRightX -= pw + 10;
+        }
+
+        // Plot coordinates
+        const plotL = cardX + 88;
+        const plotR = cardX + cardW - 28;
+        const plotW = plotR - plotL;
+
+        const axisY = topY + 350;
+        const upMaxH = 232;
+        const downMaxH = panelH - 388; // ~342px in 2013, ~385px in 2025
+
+        const gridColor = isLight ? "rgba(100, 116, 139, 0.18)" : "rgba(148, 163, 184, 0.13)";
+
+        // Upper Grid Lines (25, 50, 75, 100)
+        ctx.font = "600 13.5px 'Segoe UI', sans-serif";
+        ctx.textAlign = "right";
+        [25, 50, 75, 100].forEach((val) => {
+          const y = axisY - (val / 100) * upMaxH;
+          ctx.strokeStyle = gridColor;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(plotL, y);
+          ctx.lineTo(plotR, y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = textSub;
+          ctx.fillText(`${val}`, plotL - 10, y + 4);
+        });
+
+        // Upper Y-axis Label
+        ctx.save();
+        ctx.translate(cardX + 26, axisY - upMaxH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = isLight ? "#0369a1" : "#38bdf8";
+        ctx.font = "bold 14.5px 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("РОЗМАЇТТЯ ЗАБОРОН: I_КЗОСН ↑", 0, 0);
+        ctx.restore();
+
+        // Lower Grid Lines (% of convicted persons)
+        const maxPctRef = 15.0;
+        const lowerTicks = scaleMode === "sqrt" ? [0.5, 2, 5, 10, 15] : [3, 6, 9, 12, 15];
+
+        lowerTicks.forEach((pctVal) => {
+          const norm =
+            scaleMode === "sqrt"
+              ? Math.sqrt(pctVal / maxPctRef)
+              : pctVal / maxPctRef;
+          const y = axisY + norm * (downMaxH - 25);
+          ctx.strokeStyle = gridColor;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(plotL, y);
+          ctx.lineTo(plotR, y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = isLight ? "#be185d" : "#f472b6";
+          ctx.textAlign = "right";
+          ctx.fillText(`${pctVal}%`, plotL - 10, y + 4);
+        });
+
+        // Lower Y-axis Label
+        ctx.save();
+        ctx.translate(cardX + 26, axisY + downMaxH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = isLight ? "#be185d" : "#f43f5e";
+        ctx.font = "bold 14.5px 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("ЄДНІСТЬ ПРАКТИКИ: % ЗАСУДЖЕНИХ ↓", 0, 0);
+        ctx.restore();
+
+        const stepX = plotW / N;
+        const barW = Math.max(1.4, stepX * 0.85);
+
+        // =========================================================================
+        // IDEA #2: Section Backgrounds, Dividers, and Smooth Mountain Silhouette
+        // =========================================================================
+        secRanges.forEach((sr, sIdx) => {
+          const x1 = plotL + sr.start * stepX;
+          const x2 = plotL + (sr.end + 1) * stepX;
+          const wSec = x2 - x1;
+
+          if (sIdx % 2 === 1) {
+            ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.028)" : "rgba(255, 255, 255, 0.018)";
+            ctx.fillRect(x1, axisY - upMaxH - 42, wSec, upMaxH + downMaxH + 46);
+          }
+
+          // Section divider line
+          ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.18)" : "rgba(56, 189, 248, 0.22)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(x1, axisY - upMaxH - 42);
+          ctx.lineTo(x1, axisY + downMaxH);
+          ctx.stroke();
+
+          // Section Roman numeral & short title + section share of convictions
+          const midX = (x1 + x2) / 2;
+          if (wSec >= 18) {
+            ctx.fillStyle = isLight ? "#0f172a" : "#38bdf8";
+            ctx.font = wSec >= 34 ? "bold 15px 'Segoe UI', sans-serif" : "bold 11.5px 'Segoe UI', sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(sr.sec, midX, axisY - upMaxH - 22);
+
+            if (wSec >= 72 && SEC_SHORT_NAMES[sr.sec]) {
+              ctx.fillStyle = textSub;
+              ctx.font = "500 11px 'Segoe UI', sans-serif";
+              ctx.fillText(SEC_SHORT_NAMES[sr.sec], midX, axisY - upMaxH - 7);
+            }
+          }
+        });
+
+        // Draw smooth filled mountain silhouette for each section first (gives cohesive shape!)
+        secRanges.forEach((sr) => {
+          ctx.beginPath();
+          const xStart = plotL + sr.start * stepX + barW / 2;
+          ctx.moveTo(xStart, axisY);
+          for (let i = sr.start; i <= sr.end; i++) {
+            const x = plotL + i * stepX + barW / 2;
+            const y = axisY - (items[i].kzosn / 100) * upMaxH;
+            ctx.lineTo(x, y);
+          }
+          const xEnd = plotL + sr.end * stepX + barW / 2;
+          ctx.lineTo(xEnd, axisY);
+          ctx.closePath();
+
+          const grad = ctx.createLinearGradient(0, axisY - upMaxH, 0, axisY);
+          if (isLight) {
+            grad.addColorStop(0, "rgba(71, 85, 105, 0.26)");
+            grad.addColorStop(1, "rgba(148, 163, 184, 0.08)");
+          } else {
+            grad.addColorStop(0, "rgba(56, 189, 248, 0.16)");
+            grad.addColorStop(1, "rgba(30, 41, 59, 0.05)");
+          }
+          ctx.fillStyle = grad;
+          ctx.fill();
+        });
+
+        // =========================================================================
+        // IDEA #1 & #3: Draw Monolith of Law + Piercing Rays of Practice + Glow Cones
+        // =========================================================================
+        const downPlotMax = downMaxH - 25;
+
+        // Pass 1: Draw all "Silent/Low" upper bars so active bars render cleanly on top
+        items.forEach((it, idx) => {
+          const x = plotL + idx * stepX;
+          const hUp = (it.kzosn / 100) * upMaxH;
+          const isLiving = it.pct >= 0.15;
+
+          if (!isLiving) {
+            if (colorConcept === "monolith") {
+              ctx.fillStyle = isLight ? "rgba(100, 116, 139, 0.42)" : "rgba(71, 85, 105, 0.48)";
+            } else if (colorConcept === "hybrid") {
+              ctx.fillStyle = getSevColor(it.sev, 0.30, isLight);
+            } else {
+              ctx.fillStyle = getSevColor(it.sev, 0.88, isLight);
+            }
+            ctx.fillRect(x, axisY - hUp, barW, hUp);
+          }
+
+          // Save hitbox for interactive hover
+          hitBoxes.push({
+            x1: x,
+            x2: x + Math.max(barW, stepX),
+            y1: axisY - upMaxH,
+            y2: axisY + downMaxH,
+            it,
+          });
+        });
+
+        // Pass 2: Draw "Living Practice" norms (piercing both UP and DOWN with glow cones!)
+        items.forEach((it, idx) => {
+          if (it.pct <= 0) return;
+
+          const x = plotL + idx * stepX;
+          const cx = x + barW / 2;
+          const hUp = (it.kzosn / 100) * upMaxH;
+
+          const normDown =
+            scaleMode === "sqrt"
+              ? Math.min(1.0, Math.sqrt(it.pct / maxPctRef))
+              : Math.min(1.0, it.pct / maxPctRef);
+          const hDown = Math.max(2.2, normDown * downPlotMax);
+
+          const isCore = it.pct >= 1.5;
+          const isNoticeable = it.pct >= 0.15;
+
+          // Upper piercing bar for living norms
+          if (isNoticeable) {
+            if (colorConcept === "traffic") {
+              ctx.fillStyle = getSevColor(it.sev, 1.0, isLight);
+            } else {
+              ctx.fillStyle = isCore ? "#f43f5e" : "#f59e0b";
+            }
+            const upW = isCore ? Math.max(barW, 3.2) : Math.max(barW, 2.2);
+            ctx.fillRect(cx - upW / 2, axisY - hUp, upW, hUp);
+          }
+
+          // Idea #3: Soft conical ice-cone / aura glow around downward spikes
+          if (it.pct >= 0.25) {
+            const coneHalfW = Math.min(26, Math.max(6, Math.sqrt(it.pct) * 7.5));
+            const coneGrad = ctx.createLinearGradient(0, axisY, 0, axisY + hDown);
+            if (isCore) {
+              coneGrad.addColorStop(0, isLight ? "rgba(225, 29, 72, 0.28)" : "rgba(244, 63, 94, 0.34)");
+              coneGrad.addColorStop(1, "rgba(244, 63, 94, 0.0)");
+            } else {
+              coneGrad.addColorStop(0, isLight ? "rgba(124, 58, 237, 0.22)" : "rgba(217, 70, 239, 0.26)");
+              coneGrad.addColorStop(1, "rgba(217, 70, 239, 0.0)");
+            }
+            ctx.fillStyle = coneGrad;
+            ctx.beginPath();
+            ctx.moveTo(cx - coneHalfW, axisY + 1);
+            ctx.lineTo(cx + coneHalfW, axisY + 1);
+            ctx.lineTo(cx + 1.5, axisY + hDown);
+            ctx.lineTo(cx - 1.5, axisY + hDown);
+            ctx.closePath();
+            ctx.fill();
+          }
+
+          // Solid downward spike
+          const downW = isCore ? Math.max(barW, 4.0) : isNoticeable ? Math.max(barW, 2.5) : Math.max(barW, 1.5);
+          ctx.fillStyle = isCore
+            ? isLight ? "#e11d48" : "#f43f5e"
+            : isNoticeable
+            ? isLight ? "#7c3aed" : "#d946ef"
+            : isLight ? "rgba(124, 58, 237, 0.55)" : "rgba(168, 85, 247, 0.55)";
+          ctx.fillRect(cx - downW / 2, axisY + 1, downW, hDown);
+
+          // Glowing tip node on major spikes
+          if (it.pct >= 0.6) {
+            ctx.fillStyle = isCore ? "#fda4af" : "#f0abfc";
+            ctx.beginPath();
+            ctx.arc(cx, axisY + 1 + hDown, isCore ? 4.2 : 3.0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+
+        // Upper ridge contour line along the top of the KZOSN comb
+        secRanges.forEach((sr) => {
+          ctx.strokeStyle = isLight ? "rgba(51, 65, 85, 0.55)" : "rgba(125, 211, 252, 0.45)";
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          for (let i = sr.start; i <= sr.end; i++) {
+            const x = plotL + i * stepX + barW / 2;
+            const y = axisY - (items[i].kzosn / 100) * upMaxH;
+            if (i === sr.start) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        });
+
+        // Horizontal Mirror Axis (Y = 0)
+        ctx.strokeStyle = isLight ? "#0f172a" : "#f8fafc";
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(plotL, axisY);
+        ctx.lineTo(plotR, axisY);
+        ctx.stroke();
+
+        // =========================================================================
+        // IDEA #3: Collision-Free Smart Clustered Callout Engine
+        // =========================================================================
+        if (calloutMode !== "none") {
+          let rawCallouts = [];
+
+          if (calloutMode === "clustered") {
+            // Sort article clusters by total share descending
+            const sortedClusters = [...artClusters].sort((a, b) => b.totalPct - a.totalPct);
+            const chosen = sortedClusters.slice(0, 8);
+
+            // In 2025, ensure wartime signature articles (111-1, 111, 336, 407) are included
+            if (yearStr === "2025") {
+              ["111-1", "336", "407"].forEach((wArt) => {
+                const found = sortedClusters.find((c) => c.artStr === wArt && !chosen.includes(c));
+                if (found && found.totalPct >= 0.4) chosen.push(found);
+              });
+            }
+
+            rawCallouts = chosen.map((cl) => {
+              const anchorX = plotL + cl.bestIdx * stepX + barW / 2;
+              const normDown =
+                scaleMode === "sqrt"
+                  ? Math.min(1.0, Math.sqrt(cl.bestPartPct / maxPctRef))
+                  : Math.min(1.0, cl.bestPartPct / maxPctRef);
+              const tipY = axisY + 1 + normDown * downPlotMax;
+
+              // Format concise, informative label
+              const activeParts = cl.parts.filter((p) => p.pct >= 0.25).sort((a, b) => b.pct - a.pct);
+              let partDesc = "";
+              if (activeParts.length > 1 && cl.artStr === "185" && yearStr === "2013") {
+                partDesc = "ст. 185 (ч. 1–3 Крадіжка)";
+              } else if (activeParts.length === 1 || cl.bestPartPct / cl.totalPct >= 0.82) {
+                partDesc = `ст. ${cl.artStr} ч. ${cl.bestPartNum}`;
+              } else {
+                partDesc = `ст. ${cl.artStr} (усі ч.)`;
+              }
+              const shortTitle = cl.title.length > 24 ? cl.title.slice(0, 22) + "…" : cl.title;
+              return {
+                anchorX,
+                tipY,
+                pct: cl.totalPct,
+                line1: `${partDesc}: ${cl.totalPct.toFixed(1)}% (${cl.totalConvic.toLocaleString("uk-UA")})`,
+                line2: `${shortTitle} | КЗОСН=${cl.bestPartKzosn.toFixed(0)}`,
+                isWartime: ["111-1", "111", "336", "407"].includes(cl.artStr) && yearStr === "2025",
+              };
+            });
+          } else {
+            // Individual parts mode
+            const sortedParts = items
+              .map((it, idx) => ({ it, idx }))
+              .filter((o) => o.it.pct > 0)
+              .sort((a, b) => b.it.pct - a.it.pct)
+              .slice(0, 9);
+
+            rawCallouts = sortedParts.map(({ it, idx }) => {
+              const anchorX = plotL + idx * stepX + barW / 2;
+              const normDown =
+                scaleMode === "sqrt"
+                  ? Math.min(1.0, Math.sqrt(it.pct / maxPctRef))
+                  : Math.min(1.0, it.pct / maxPctRef);
+              const tipY = axisY + 1 + normDown * downPlotMax;
+              const shortTitle = it.title.length > 24 ? it.title.slice(0, 22) + "…" : it.title;
+              return {
+                anchorX,
+                tipY,
+                pct: it.pct,
+                line1: `${it.label}: ${it.pct.toFixed(1)}% (${it.convic.toLocaleString("uk-UA")})`,
+                line2: `${shortTitle} | КЗОСН=${it.kzosn.toFixed(0)}`,
+                isWartime: ["111-1", "111", "336", "407"].includes(it.artStr) && yearStr === "2025",
+              };
+            });
+          }
+
+          // Measure boxes and assign non-overlapping (x, y) coordinates!
+          rawCallouts.sort((a, b) => a.anchorX - b.anchorX);
+          const boxes = rawCallouts.map((rc) => {
+            ctx.font = "bold 13.5px 'Segoe UI', sans-serif";
+            const w1 = ctx.measureText(rc.line1).width;
+            ctx.font = "500 11.5px 'Segoe UI', sans-serif";
+            const w2 = ctx.measureText(rc.line2).width;
+            const bw = Math.max(w1, w2) + 18;
+            const bh = 38;
+            const prefY = Math.min(axisY + downMaxH - bh / 2 - 4, Math.max(axisY + 46, rc.tipY + 28));
+            return {
+              ...rc,
+              bw,
+              bh,
+              cx: Math.max(plotL + bw / 2 + 4, Math.min(plotR - bw / 2 - 4, rc.anchorX)),
+              cy: prefY,
+            };
+          });
+
+          // Iterative 2D collision resolution between callout boxes
+          for (let iter = 0; iter < 60; iter++) {
+            for (let i = 0; i < boxes.length; i++) {
+              for (let j = i + 1; j < boxes.length; j++) {
+                const A = boxes[i];
+                const B = boxes[j];
+                const overlapX = (A.bw + B.bw) / 2 + 10 - Math.abs(A.cx - B.cx);
+                const overlapY = (A.bh + B.bh) / 2 + 6 - Math.abs(A.cy - B.cy);
+                if (overlapX > 0 && overlapY > 0) {
+                  // Push apart horizontally and vertically
+                  if (overlapX < overlapY * 2.2) {
+                    const push = overlapX / 2;
+                    A.cx -= push;
+                    B.cx += push;
+                  } else {
+                    const pushY = overlapY / 2 + 2;
+                    if (A.tipY <= B.tipY) {
+                      A.cy -= pushY;
+                      B.cy += pushY;
+                    } else {
+                      A.cy += pushY;
+                      B.cy -= pushY;
+                    }
+                  }
+                }
+              }
+              // Clamp inside plot bounds
+              boxes[i].cx = Math.max(
+                plotL + boxes[i].bw / 2 + 4,
+                Math.min(plotR - boxes[i].bw / 2 - 4, boxes[i].cx)
+              );
+              boxes[i].cy = Math.max(
+                axisY + boxes[i].bh / 2 + 12,
+                Math.min(axisY + downMaxH - boxes[i].bh / 2 - 4, boxes[i].cy)
+              );
+            }
+          }
+
+          // Render leader lines first, then callout cards
+          boxes.forEach((b) => {
+            ctx.strokeStyle = b.isWartime
+              ? "#f59e0b"
+              : isLight
+              ? "rgba(225, 29, 72, 0.65)"
+              : "rgba(244, 63, 94, 0.72)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(b.anchorX, b.tipY);
+            ctx.lineTo(b.cx, b.cy - b.bh / 2);
+            ctx.stroke();
+          });
+
+          boxes.forEach((b) => {
+            const x0 = b.cx - b.bw / 2;
+            const y0 = b.cy - b.bh / 2;
+            ctx.fillStyle = isLight ? "rgba(255, 255, 255, 0.96)" : "rgba(11, 18, 33, 0.94)";
+            ctx.strokeStyle = b.isWartime ? "#f59e0b" : isLight ? "#e11d48" : "#f43f5e";
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.roundRect(x0, y0, b.bw, b.bh, 7);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = b.isWartime
+              ? isLight ? "#b45309" : "#fde047"
+              : isLight ? "#be185d" : "#ffe4e6";
+            ctx.font = "bold 13.5px 'Segoe UI', sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(b.line1, b.cx, y0 + 16);
+
+            ctx.fillStyle = textSub;
+            ctx.font = "500 11.5px 'Segoe UI', sans-serif";
+            ctx.fillText(b.line2, b.cx, y0 + 32);
+          });
+        }
+      }
+
+      // Interactive Hover Tooltip
+      canvas.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+
+        const hit = hitBoxes.find((b) => mx >= b.x1 && mx <= b.x2 && my >= b.y1 && my <= b.y2);
+        if (hit) {
+          const it = hit.it;
+          hoverCard.style.display = "block";
+          hoverCard.style.left = Math.min(window.innerWidth - 390, e.clientX + 16) + "px";
+          hoverCard.style.top = Math.max(12, e.clientY - 20) + "px";
+          document.getElementById("hc-label").textContent = `${it.label} (Розділ ${it.sec}, ${it.year} р.)`;
+          document.getElementById("hc-kzosn").textContent = `I_КЗОСН = ${it.kzosn.toFixed(1)} (#${it.rankNi}/${it.nMax})`;
+          document.getElementById("hc-conv").textContent =
+            `Засуджено: ${it.convic.toLocaleString("uk-UA")} осіб (${it.pct.toFixed(3)}% усіх вироків у ${it.year} р.)`;
+          document.getElementById("hc-title").textContent = it.title;
+          document.getElementById("hc-sanc").textContent = it.sanc;
+        } else {
+          hoverCard.style.display = "none";
+        }
+      });
+
+      canvas.addEventListener("mouseleave", () => {
+        hoverCard.style.display = "none";
+      });
+
+      [colorConceptSel, orderModeSel, calloutModeSel, scaleModeSel, themeSel].forEach((el) => {
+        el.addEventListener("change", renderPoster);
+      });
+
+      downloadBtn.addEventListener("click", () => {
+        const link = document.createElement("a");
+        link.download = `KZOSN_Infographic_v2_2013_vs_2025_${themeSel.value}.png`;
+        link.href = canvas.toDataURL("image/png", 1.0);
+        link.click();
+      });
+
+      renderPoster();
+    })();
+  </script>
+</body>
+</html>
