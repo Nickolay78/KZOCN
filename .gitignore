@@ -12,3 +12,6 @@ Thumbs.db
 ~$*
 *.tmp
 *.bak
+
+# Local-only raw import packages (exceeds GitHub 100 MB limit)
+imports/

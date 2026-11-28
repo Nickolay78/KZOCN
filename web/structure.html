@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Структура редакцій КК України 2001–2026 — заборони, тяжкість, види покарань | КЗОСН</title>
+  <meta name="description" content="Динаміка кількості кримінально-правових заборон, їх розподілу за ступенем тяжкості (ст. 12 КК) та застосування основних видів покарань у санкціях по редакціях КК України 2001–2026, для всього Кодексу та окремих розділів." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #050811;
+      --panel: rgba(15, 23, 42, 0.72);
+      --border: rgba(148, 163, 184, 0.18);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent2: #818cf8;
+      --sev1: #4ade80;
+      --sev2: #facc15;
+      --sev3: #fb923c;
+      --sev4: #f43f5e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(56, 189, 248, 0.10), transparent 60%),
+        radial-gradient(900px 500px at 100% 0%, rgba(129, 140, 248, 0.10), transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+    }
+    main { max-width: 1480px; margin: 0 auto; padding: 18px 22px 40px; }
+    header.page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+    h1 {
+      margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em;
+      background: linear-gradient(90deg, #7dd3fc, #a5b4fc 60%, #f0abfc);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .subtitle { color: var(--muted); font-size: 12.5px; margin-top: 4px; max-width: 820px; line-height: 1.45; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .ctrl { display: flex; flex-direction: column; gap: 3px; font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    select {
+      background: rgba(15, 23, 42, 0.9); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 10px; font: 500 13px 'Inter', sans-serif; min-width: 120px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    select:hover, select:focus { border-color: var(--accent); outline: none; }
+    #scope-select { max-width: 420px; }
+    .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .seg button {
+      background: rgba(15, 23, 42, 0.9); color: var(--muted); border: 0; padding: 7px 12px;
+      font: 600 12.5px 'Inter', sans-serif; cursor: pointer; transition: all .15s;
+    }
+    .seg button.active { background: linear-gradient(135deg, #0284c7, #6366f1); color: #fff; }
+    .seg button:not(.active):hover { color: #fff; background: rgba(56, 189, 248, 0.15); }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .kpi {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px;
+      backdrop-filter: blur(10px); position: relative; overflow: hidden; transition: transform .15s, border-color .15s;
+    }
+    .kpi:hover { transform: translateY(-2px); border-color: rgba(56, 189, 248, 0.45); }
+    .kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); opacity: .7; }
+    .kpi .lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+    .kpi .val { font-size: 26px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .kpi .sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+    .pos { color: #4ade80; } .neg { color: #f87171; }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .grid .wide { grid-column: 1 / -1; }
+    section.card {
+      min-width: 0;
+      width: 100%;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px 12px;
+      backdrop-filter: blur(10px); animation: fadeUp .45s ease both;
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    h2 { margin: 0; font-size: 14.5px; font-weight: 700; }
+    .card-note { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+    .btn-csv {
+      background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.4); color: #7dd3fc;
+      border-radius: 7px; padding: 4px 9px; font: 600 11px 'Inter', sans-serif; cursor: pointer; white-space: nowrap; transition: all .15s;
+    }
+    .btn-csv:hover { background: #38bdf8; color: #06101f; }
+    .chart-box { position: relative; height: 320px; }
+
+    .tbl-wrap { overflow: auto; max-height: 620px; border-radius: 10px; border: 1px solid var(--border); }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+    th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(148, 163, 184, 0.08); white-space: nowrap; }
+    th { position: sticky; top: 0; background: #0b1324; color: var(--muted); font-weight: 600; font-size: 11px; z-index: 2; }
+    th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: #0b1324; z-index: 1; }
+    th:first-child { z-index: 3; }
+    tbody tr { cursor: pointer; transition: background .12s; }
+    tbody tr:hover td { background: rgba(56, 189, 248, 0.10); }
+    tbody tr.sel td { background: rgba(99, 102, 241, 0.22); }
+    tr.total td { font-weight: 700; color: #fff; border-top: 1px solid rgba(148, 163, 184, 0.3); }
+    td.heat { color: #0b1020; font-weight: 600; }
+    .sec-name { max-width: 300px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: bottom; }
+    .legend-inline { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+    footer { margin-top: 18px; font-size: 11.5px; color: #64748b; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<main>
+  <header class="page-head">
+    <div>
+      <h1>Структура редакцій КК України: заборони, тяжкість, види покарань</h1>
+      <div class="subtitle">
+        Одиниця обліку — <b>частина статті із санкцією</b> (окрема заборона). Тяжкість — за ст. 12 КК у редакції відповідного року
+        (до 2020: невеликої / середньої тяжкості / тяжкі / особливо тяжкі; з 2020: кримінальні проступки / нетяжкі / тяжкі / особливо тяжкі злочини).
+        Види покарань — лише <b>основні</b> (додаткові не враховуються). Зрізи — станом на 31 грудня кожного року.
+      </div>
+    </div>
+    <div class="controls">
+      <label class="ctrl">Охоплення
+        <select id="scope-select"></select>
+      </label>
+      <label class="ctrl">Редакція (для таблиць)
+        <select id="edition-select"></select>
+      </label>
+      <div class="ctrl">Показник
+        <div class="seg" id="mode-seg">
+          <button type="button" data-mode="abs" class="active" id="mode-abs">Кількість</button>
+          <button type="button" data-mode="pct" id="mode-pct">Частка, %</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head">
+        <div><h2>Кількість заборон</h2><div class="card-note">Частини статей із санкціями в межах обраного охоплення.</div></div>
+        <button class="btn-csv" id="csv-count">⬇ CSV</button>
+      </div>
+      <div class="chart-box"><canvas id="chart-count"></canvas></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div><h2>Розподіл за ступенем тяжкості (ст. 12 КК)</h2><div class="card-note">Пунктир — перехід до нової класифікації (Закон № 2617-VIII, з 01.07.2020).</div></div>
+        <button class="btn-csv" id="csv-sev">⬇ CSV</button>
+      </div>
+      <div class="chart-box"><canvas id="chart-sev"></canvas></div>
+    </section>
+
+    <section class="card wide">
+      <div class="card-head">
+        <div><h2>Динаміка законодавчого визначення видів основних покарань</h2><div class="card-note">Кількість санкцій, у яких вид передбачено як основне покарання (у т.ч. альтернативне). «Частка» — % від усіх заборон охоплення. Клік на легенду вмикає / вимикає вид.</div></div>
+        <button class="btn-csv" id="csv-pun">⬇ CSV</button>
+      </div>
+      <div class="chart-box" style="height: 380px;"><canvas id="chart-pun"></canvas></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div><h2 id="sev-tbl-title">Тяжкість за розділами</h2><div class="card-note">Клік на рядок — обрати розділ як охоплення.</div></div>
+        <button class="btn-csv" id="csv-sev-tbl">⬇ CSV</button>
+      </div>
+      <div class="tbl-wrap"><table id="sev-tbl"></table></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div><h2 id="pun-tbl-title">Види покарань за розділами</h2><div class="card-note">Колір комірки — інтенсивність у межах стовпця.</div></div>
+        <button class="btn-csv" id="csv-pun-tbl">⬇ CSV</button>
+      </div>
+      <div class="tbl-wrap"><table id="pun-tbl"></table></div>
+    </section>
+
+    <section class="card wide">
+      <div class="card-head">
+        <div>
+          <h2>Теплова карта «розділи × редакції»</h2>
+          <div class="card-note">Оберіть показник; клік на рядок — обрати розділ.</div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="heat-metric"></select>
+          <button class="btn-csv" id="csv-heat">⬇ CSV</button>
+        </div>
+      </div>
+      <div class="tbl-wrap"><table id="heat-tbl"></table></div>
+    </section>
+  </div>
+
+  <footer>
+    Джерело: база КЗОСН (kzocn_kk_ukraine.db), автоматичний парсинг санкцій усіх редакцій КК України 2001–2026.
+    Тяжкість визначено за верхньою межею позбавлення волі / штрафу відповідно до ст. 12 КК у редакції року зрізу.
+  </footer>
+</main>
+
+<script src="data.js"></script>
+<script src="app_shell.js"></script>
+<script>
+(function () {
+  const DATA = window.KZOCN_DATA;
+  const EDITIONS = DATA.editions.map((e) => e.edition_id);
+  const SECTIONS = DATA.sections;
+  const VC = DATA.vecCols;
+  const col = (name) => VC.indexOf(name);
+
+  // Main punishments only (Art. 51), from most to least severe
+  const PUN = [
+    { key: "S",      name: "Довічне позбавлення волі",       color: "#f43f5e" },
+    { key: "T",      name: "Позбавлення волі на певний строк", color: "#fb923c" },
+    { key: "V",      name: "Тримання в дисбатальйоні",       color: "#a78bfa" },
+    { key: "X",      name: "Обмеження волі",                 color: "#facc15" },
+    { key: "PN_MAX", name: "Пробаційний нагляд",             color: "#2dd4bf" },
+    { key: "Z",      name: "Арешт",                          color: "#f472b6" },
+    { key: "AB",     name: "Службове обмеження",             color: "#94a3b8" },
+    { key: "AD",     name: "Виправні роботи",                color: "#60a5fa" },
+    { key: "AF",     name: "Громадські роботи",              color: "#4ade80" },
+    { key: "AH",     name: "Позбавлення права (основне)",    color: "#c084fc" },
+    { key: "AJ",     name: "Штраф",                          color: "#38bdf8" },
+  ].map((p) => ({ ...p, idx: col(p.key) }));
+
+  const SEV_COLORS = ["#4ade80", "#facc15", "#fb923c", "#f43f5e"];
+  const SEV_OLD = ["Невеликої тяжкості", "Середньої тяжкості", "Тяжкі", "Особливо тяжкі"];
+  const SEV_NEW = ["Кримінальні проступки", "Нетяжкі злочини", "Тяжкі злочини", "Особливо тяжкі злочини"];
+  const SEV_LEGEND = ["Невеликої тяжкості → кримінальні проступки", "Середньої тяжкості → нетяжкі", "Тяжкі", "Особливо тяжкі"];
+
+  const edYear = (ed) => (ed === "current" ? 2026 : ed === "2001_09_01" ? 2001 : Number(ed));
+  const edLabel = (ed) => (ed === "current" ? "2026*" : ed === "2001_09_01" ? "01.09.2001" : ed);
+  const sevNames = (ed) => (edYear(ed) >= 2020 ? SEV_NEW : SEV_OLD);
+  const fmt = (n) => n.toLocaleString("uk-UA");
+  const pct = (a, b) => (b ? (100 * a) / b : 0);
+
+  // ---------- Aggregation (one pass) ----------
+  // agg[ed][sec] = { n, sev:[4], pun:[P], keys:Map(normKey -> sanc_id) }
+  const agg = {};
+  EDITIONS.forEach((ed) => {
+    const bySec = { ALL: newBucket() };
+    SECTIONS.forEach((s) => (bySec[s.id] = newBucket()));
+    (DATA.byEdition[ed] || []).forEach((r) => {
+      const vec = DATA.vectors[r[16]];
+      const key = `${r[1]}|${r[3]}`;
+      [bySec.ALL, bySec[r[0]]].forEach((b) => {
+        if (!b) return;
+        b.n++;
+        const sv = Math.min(4, Math.max(1, r[8] || 1));
+        b.sev[sv - 1]++;
+        PUN.forEach((p, i) => { if (vec && vec[p.idx] > 0) b.pun[i]++; });
+        b.keys.set(key, r[11]);
+      });
+    });
+    agg[ed] = bySec;
+  });
+  function newBucket() { return { n: 0, sev: [0, 0, 0, 0], pun: PUN.map(() => 0), keys: new Map() }; }
+
+  // ---------- State ----------
+  const shellState = window.KZOSN_SHELL ? window.KZOSN_SHELL.getState() : {};
+  let scope = shellState.sec && agg[EDITIONS[0]][shellState.sec] ? shellState.sec : "ALL";
+  let edition = EDITIONS.includes(shellState.ed) ? shellState.ed : "2025";
+  let mode = "abs";
+
+  // ---------- Controls ----------
+  const scopeSel = document.getElementById("scope-select");
+  scopeSel.innerHTML = `<option value="ALL">Весь КК</option>` +
+    SECTIONS.map((s) => `<option value="${s.id}">${s.title}</option>`).join("");
+  const edSel = document.getElementById("edition-select");
+  edSel.innerHTML = EDITIONS.map((e) => `<option value="${e}">${edLabel(e)}</option>`).join("");
+  const heatSel = document.getElementById("heat-metric");
+  heatSel.innerHTML = [
+    `<option value="n">Кількість заборон</option>`,
+    ...[0, 1, 2, 3].map((i) => `<option value="sev${i}">Частка: ${SEV_LEGEND[i]}</option>`),
+    `<option value="sev34">Частка: тяжкі + особливо тяжкі</option>`,
+    ...PUN.map((p, i) => `<option value="pun${i}">Частка санкцій із видом: ${p.name}</option>`),
+  ].join("");
+
+  scopeSel.addEventListener("change", () => setScope(scopeSel.value, true));
+  edSel.addEventListener("change", () => setEdition(edSel.value, true));
+  heatSel.addEventListener("change", renderHeat);
+  document.querySelectorAll("#mode-seg button").forEach((b) =>
+    b.addEventListener("click", () => {
+      mode = b.dataset.mode;
+      document.querySelectorAll("#mode-seg button").forEach((x) => x.classList.toggle("active", x === b));
+      renderCharts();
+    })
+  );
+
+  function setScope(s, broadcast) {
+    scope = s; scopeSel.value = s;
+    if (broadcast && window.KZOSN_SHELL) window.KZOSN_SHELL.setState({ sec: s });
+    renderAll();
+  }
+  function setEdition(e, broadcast) {
+    edition = e; edSel.value = e;
+    if (broadcast && window.KZOSN_SHELL) window.KZOSN_SHELL.setState({ ed: e });
+    renderKpis(); renderTables(); renderCharts();
+  }
+
+  // ---------- Charts ----------
+  Chart.defaults.color = "#94a3b8";
+  Chart.defaults.font.family = "Inter, Segoe UI, sans-serif";
+  Chart.defaults.font.size = 11;
+  const gridColor = "rgba(148,163,184,0.10)";
+  const labels = EDITIONS.map(edLabel);
+
+  const markerPlugin = {
+    id: "edMarkers",
+    afterDatasetsDraw(chart) {
+      const { ctx, chartArea: a, scales: { x } } = chart;
+      if (!x) return;
+      ctx.save();
+      // 2020 reform line
+      const i2020 = EDITIONS.indexOf("2020");
+      if (i2020 > 0) {
+        const px = (x.getPixelForValue(i2020) + x.getPixelForValue(i2020 - 1)) / 2;
+        ctx.strokeStyle = "rgba(240,171,252,0.7)"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke();
+        ctx.setLineDash([]); ctx.fillStyle = "#f0abfc"; ctx.font = "600 10px Inter";
+        ctx.fillText("ст. 12 (2020)", px + 4, a.top + 10);
+      }
+      // selected edition highlight
+      const iSel = EDITIONS.indexOf(edition);
+      if (iSel >= 0) {
+        const px = x.getPixelForValue(iSel);
+        ctx.fillStyle = "rgba(56,189,248,0.10)";
+        const w = Math.max(8, (a.right - a.left) / EDITIONS.length);
+        ctx.fillRect(px - w / 2, a.top, w, a.bottom - a.top);
+      }
+      ctx.restore();
+    },
+  };
+
+  const commonOpts = (stacked, yTitle) => ({
+    responsive: true, maintainAspectRatio: false, animation: { duration: 450 },
+    interaction: { mode: "index", intersect: false },
+    onClick: (evt, els, chart) => {
+      const pts = chart.getElementsAtEventForMode(evt, "index", { intersect: false }, false);
+      if (pts.length) setEdition(EDITIONS[pts[0].index], true);
+    },
+    scales: {
+      x: { stacked, grid: { color: gridColor }, ticks: { maxRotation: 60, minRotation: 45 } },
+      y: { stacked, grid: { color: gridColor }, beginAtZero: true, title: { display: !!yTitle, text: yTitle } },
+    },
+    plugins: { legend: { labels: { boxWidth: 12, boxHeight: 12, usePointStyle: true } } },
+  });
+
+  const chCount = new Chart(document.getElementById("chart-count"), {
+    type: "line",
+    data: { labels, datasets: [{ label: "Заборон", data: [], borderColor: "#38bdf8", backgroundColor: "rgba(56,189,248,0.15)", fill: true, tension: 0.25, pointRadius: 3, pointHoverRadius: 6 }] },
+    options: { ...commonOpts(false, "кількість"), plugins: { legend: { display: false } } },
+    plugins: [markerPlugin],
+  });
+
+  const chSev = new Chart(document.getElementById("chart-sev"), {
+    type: "bar",
+    data: { labels, datasets: SEV_LEGEND.map((l, i) => ({ label: l, data: [], backgroundColor: SEV_COLORS[i], borderRadius: 2 })) },
+    options: (() => {
+      const o = commonOpts(true, "");
+      o.plugins.tooltip = { callbacks: {
+        label: (c) => {
+          const ed = EDITIONS[c.dataIndex];
+          const b = agg[ed][scope];
+          const v = b.sev[c.datasetIndex];
+          return ` ${sevNames(ed)[c.datasetIndex]}: ${fmt(v)} (${pct(v, b.n).toFixed(1)}%)`;
+        },
+      } };
+      return o;
+    })(),
+    plugins: [markerPlugin],
+  });
+
+  const chPun = new Chart(document.getElementById("chart-pun"), {
+    type: "line",
+    data: { labels, datasets: PUN.map((p) => ({ label: p.name, data: [], borderColor: p.color, backgroundColor: p.color, tension: 0.2, pointRadius: 2, pointHoverRadius: 5, borderWidth: 2 })) },
+    options: (() => {
+      const o = commonOpts(false, "");
+      o.plugins.tooltip = { itemSort: (a, b) => b.parsed.y - a.parsed.y, callbacks: {
+        label: (c) => {
+          const b = agg[EDITIONS[c.dataIndex]][scope];
+          const v = b.pun[c.datasetIndex];
+          return ` ${PUN[c.datasetIndex].name}: ${fmt(v)} (${pct(v, b.n).toFixed(1)}%)`;
+        },
+      } };
+      o.plugins.legend.position = "right";
+      return o;
+    })(),
+    plugins: [markerPlugin],
+  });
+
+  function renderCharts() {
+    const series = EDITIONS.map((ed) => agg[ed][scope]);
+    const isPct = mode === "pct";
+    chCount.data.datasets[0].data = series.map((b) => b.n);
+    chCount.update();
+    chSev.data.datasets.forEach((ds, i) => (ds.data = series.map((b) => (isPct ? +pct(b.sev[i], b.n).toFixed(2) : b.sev[i]))));
+    chSev.options.scales.y.max = isPct ? 100 : undefined;
+    chSev.options.scales.y.title = { display: true, text: isPct ? "% заборон" : "кількість" };
+    chSev.update();
+    chPun.data.datasets.forEach((ds, i) => (ds.data = series.map((b) => (isPct ? +pct(b.pun[i], b.n).toFixed(2) : b.pun[i]))));
+    chPun.options.scales.y.max = isPct ? 100 : undefined;
+    chPun.options.scales.y.title = { display: true, text: isPct ? "% санкцій" : "кількість санкцій" };
+    chPun.update();
+  }
+
+  // ---------- KPIs ----------
+  function renderKpis() {
+    const i = EDITIONS.indexOf(edition);
+    const cur = agg[edition][scope];
+    let prevEd = i > 0 ? EDITIONS[i - 1] : null;
+    if (prevEd === "2001_09_01" && edition === "2001") prevEd = "2001_09_01";
+    const prev = prevEd ? agg[prevEd][scope] : null;
+    let added = 0, removed = 0, changed = 0;
+    if (prev) {
+      cur.keys.forEach((sid, k) => { if (!prev.keys.has(k)) added++; else if (prev.keys.get(k) !== sid) changed++; });
+      prev.keys.forEach((_, k) => { if (!cur.keys.has(k)) removed++; });
+    }
+    const d = prev ? cur.n - prev.n : 0;
+    const heavy = cur.sev[2] + cur.sev[3];
+    const prisonIdx = PUN.findIndex((p) => p.key === "T");
+    const scopeName = scope === "ALL" ? "Весь КК" : `Розділ ${scope}`;
+    const cards = [
+      ["Заборон · " + scopeName, fmt(cur.n), `редакція ${edLabel(edition)}`],
+      ["Зміна до попередньої", (d > 0 ? "+" : "") + fmt(d), prev ? `проти ${edLabel(prevEd)}` : "—", d > 0 ? "pos" : d < 0 ? "neg" : ""],
+      ["Нових заборон", fmt(added), "з'явилися частини"],
+      ["Виключених", fmt(removed), "зникли частини"],
+      ["Змінено санкцій", fmt(changed), "текст санкції змінено"],
+      ["Тяжкі + особливо тяжкі", pct(heavy, cur.n).toFixed(1) + "%", `${fmt(heavy)} заборон`],
+      ["З позбавленням волі", pct(cur.pun[prisonIdx], cur.n).toFixed(1) + "%", `${fmt(cur.pun[prisonIdx])} санкцій`],
+    ];
+    document.getElementById("kpis").innerHTML = cards.map(([l, v, s, cls]) =>
+      `<div class="kpi"><div class="lbl">${l}</div><div class="val ${cls || ""}">${v}</div><div class="sub">${s}</div></div>`).join("");
+  }
+
+  // ---------- Tables (selected edition, sections) ----------
+  function heatColor(t) {
+    // 0..1 -> dark slate to cyan/indigo
+    const a = 0.12 + 0.78 * t;
+    return `rgba(56,189,248,${a.toFixed(3)})`;
+  }
+  function cellStyle(v, max) {
+    if (!max) return "";
+    const t = v / max;
+    return `style="background:${heatColor(t)};color:${t > 0.55 ? "#06101f" : "#e2e8f0"}"`;
+  }
+  const secRow = (s) => `<span class="sec-name" title="${s.title}"><b>${s.id}</b> ${s.title.replace(/^Розділ [IVXL]+\.\s*/, "")}</span>`;
+
+  let lastSevTable = [], lastPunTable = [];
+  function renderTables() {
+    const names = sevNames(edition);
+    const isPct = mode === "pct";
+    document.getElementById("sev-tbl-title").textContent = `Тяжкість за розділами · ${edLabel(edition)}`;
+    document.getElementById("pun-tbl-title").textContent = `Основні покарання за розділами · ${edLabel(edition)}`;
+
+    // Severity
+    const rows = SECTIONS.map((s) => ({ s, b: agg[edition][s.id] })).filter((r) => r.b.n > 0);
+    const maxN = Math.max(...rows.map((r) => r.b.n));
+    const sevMax = [0, 1, 2, 3].map((i) => Math.max(...rows.map((r) => pct(r.b.sev[i], r.b.n))));
+    let h = `<thead><tr><th>Розділ</th><th>Заборон</th>${names.map((n, i) => `<th><span class="dot" style="background:${SEV_COLORS[i]}"></span>${n}</th>`).join("")}</tr></thead><tbody>`;
+    lastSevTable = [["Розділ", "Заборон", ...names]];
+    rows.forEach(({ s, b }) => {
+      h += `<tr data-sec="${s.id}" class="${scope === s.id ? "sel" : ""}"><td>${secRow(s)}</td><td ${cellStyle(b.n, maxN)}>${b.n}</td>` +
+        b.sev.map((v, i) => `<td ${cellStyle(pct(v, b.n), sevMax[i])}>${v} <span style="opacity:.7">(${pct(v, b.n).toFixed(0)}%)</span></td>`).join("") + `</tr>`;
+      lastSevTable.push([s.id, b.n, ...b.sev]);
+    });
+    const T = agg[edition].ALL;
+    h += `<tr class="total" data-sec="ALL"><td>Весь КК</td><td>${T.n}</td>${T.sev.map((v) => `<td>${v} <span style="opacity:.7">(${pct(v, T.n).toFixed(0)}%)</span></td>`).join("")}</tr></tbody>`;
+    lastSevTable.push(["ALL", T.n, ...T.sev]);
+    document.getElementById("sev-tbl").innerHTML = h;
+
+    // Punishments
+    const punMax = PUN.map((_, i) => Math.max(...rows.map((r) => pct(r.b.pun[i], r.b.n))));
+    let p = `<thead><tr><th>Розділ</th><th>Заборон</th>${PUN.map((x) => `<th title="${x.name}"><span class="dot" style="background:${x.color}"></span>${shortPun(x.name)}</th>`).join("")}</tr></thead><tbody>`;
+    lastPunTable = [["Розділ", "Заборон", ...PUN.map((x) => x.name)]];
+    rows.forEach(({ s, b }) => {
+      p += `<tr data-sec="${s.id}" class="${scope === s.id ? "sel" : ""}"><td>${secRow(s)}</td><td>${b.n}</td>` +
+        b.pun.map((v, i) => {
+          const val = isPct ? pct(v, b.n).toFixed(0) + "%" : v;
+          return `<td ${cellStyle(pct(v, b.n), punMax[i])}>${v ? val : "·"}</td>`;
+        }).join("") + `</tr>`;
+      lastPunTable.push([s.id, b.n, ...b.pun]);
+    });
+    p += `<tr class="total" data-sec="ALL"><td>Весь КК</td><td>${T.n}</td>${T.pun.map((v) => `<td>${isPct ? pct(v, T.n).toFixed(0) + "%" : v}</td>`).join("")}</tr></tbody>`;
+    lastPunTable.push(["ALL", T.n, ...T.pun]);
+    document.getElementById("pun-tbl").innerHTML = p;
+  }
+  function shortPun(n) {
+    return ({ "Довічне позбавлення волі": "Довічне", "Позбавлення волі на певний строк": "Позб. волі", "Тримання в дисбатальйоні": "Дисбат",
+      "Обмеження волі": "Обмеж. волі", "Пробаційний нагляд": "Пробація", "Арешт": "Арешт", "Службове обмеження": "Служб. обмеж.",
+      "Виправні роботи": "Випр. роботи", "Громадські роботи": "Гром. роботи", "Позбавлення права (основне)": "Позб. права", "Штраф": "Штраф" })[n] || n;
+  }
+
+  // ---------- Heatmap sections × editions ----------
+  let lastHeat = [];
+  function heatValue(b, m) {
+    if (!b.n) return null;
+    if (m === "n") return b.n;
+    if (m === "sev34") return pct(b.sev[2] + b.sev[3], b.n);
+    if (m.startsWith("sev")) return pct(b.sev[+m.slice(3)], b.n);
+    if (m.startsWith("pun")) return pct(b.pun[+m.slice(3)], b.n);
+    return null;
+  }
+  function renderHeat() {
+    const m = heatSel.value;
+    const eds = EDITIONS.filter((e) => e !== "2001_09_01");
+    const vals = SECTIONS.map((s) => eds.map((e) => heatValue(agg[e][s.id], m)));
+    const flat = vals.flat().filter((v) => v !== null);
+    const max = Math.max(...flat, 1e-9);
+    let h = `<thead><tr><th>Розділ</th>${eds.map((e) => `<th>${edLabel(e)}</th>`).join("")}</tr></thead><tbody>`;
+    lastHeat = [["Розділ", ...eds.map(edLabel)]];
+    SECTIONS.forEach((s, si) => {
+      h += `<tr data-sec="${s.id}" class="${scope === s.id ? "sel" : ""}"><td>${secRow(s)}</td>` +
+        vals[si].map((v) => v === null ? `<td>·</td>` : `<td ${cellStyle(v, max)}>${m === "n" ? v : v.toFixed(0)}</td>`).join("") + `</tr>`;
+      lastHeat.push([s.id, ...vals[si].map((v) => (v === null ? "" : m === "n" ? v : v.toFixed(2)))]);
+    });
+    const tot = eds.map((e) => heatValue(agg[e].ALL, m));
+    h += `<tr class="total" data-sec="ALL"><td>Весь КК</td>${tot.map((v) => `<td>${m === "n" ? v : v.toFixed(0)}</td>`).join("")}</tr></tbody>`;
+    lastHeat.push(["ALL", ...tot.map((v) => (m === "n" ? v : v.toFixed(2)))]);
+    document.getElementById("heat-tbl").innerHTML = h;
+  }
+
+  ["sev-tbl", "pun-tbl", "heat-tbl"].forEach((id) =>
+    document.getElementById(id).addEventListener("click", (e) => {
+      const tr = e.target.closest("tr[data-sec]");
+      if (tr) setScope(tr.dataset.sec, true);
+    })
+  );
+
+  // ---------- CSV ----------
+  function downloadCsv(name, rows) {
+    const csv = "\uFEFF" + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  const scopeTag = () => (scope === "ALL" ? "KK" : "R" + scope);
+  document.getElementById("csv-count").onclick = () =>
+    downloadCsv(`zaborony_${scopeTag()}.csv`, [["Редакція", "Заборон"], ...EDITIONS.map((e) => [edLabel(e), agg[e][scope].n])]);
+  document.getElementById("csv-sev").onclick = () =>
+    downloadCsv(`tiazhkist_${scopeTag()}.csv`, [["Редакція", "Заборон", ...SEV_LEGEND], ...EDITIONS.map((e) => [edLabel(e), agg[e][scope].n, ...agg[e][scope].sev])]);
+  document.getElementById("csv-pun").onclick = () =>
+    downloadCsv(`pokarannia_${scopeTag()}.csv`, [["Редакція", "Заборон", ...PUN.map((p) => p.name)], ...EDITIONS.map((e) => [edLabel(e), agg[e][scope].n, ...agg[e][scope].pun])]);
+  document.getElementById("csv-sev-tbl").onclick = () => downloadCsv(`tiazhkist_rozdily_${edition}.csv`, lastSevTable);
+  document.getElementById("csv-pun-tbl").onclick = () => downloadCsv(`pokarannia_rozdily_${edition}.csv`, lastPunTable);
+  document.getElementById("csv-heat").onclick = () => downloadCsv(`heatmap_${heatSel.value}.csv`, lastHeat);
+
+  // ---------- Render ----------
+  function renderAll() { renderKpis(); renderCharts(); renderTables(); renderHeat(); }
+  scopeSel.value = scope; edSel.value = edition;
+  renderAll();
+
+  if (window.KZOSN_SHELL) {
+    window.KZOSN_SHELL.onStateChange((st) => {
+      let dirty = false;
+      if (st.sec && st.sec !== scope && agg[edition][st.sec]) { scope = st.sec; scopeSel.value = scope; dirty = true; }
+      if (st.ed && st.ed !== edition && EDITIONS.includes(st.ed)) { edition = st.ed; edSel.value = edition; dirty = true; }
+      if (dirty) renderAll();
+    });
+  }
+})();
+</script>
+</body>
+</html>

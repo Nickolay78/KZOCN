@@ -16,6 +16,8 @@
     { id: "calculator", file: "calculator.html", label: "🧪 4. Калькулятор санкції" },
     { id: "poster_v2",  file: "fb_post_v2.html", label: "✨ 5. Інфографіка v2 (FB)" },
     { id: "poster_v1",  file: "fb_post_2d.html", label: "📊 6. Постер v1" },
+    { id: "structure",  file: "structure.html",     label: "📈 7. Структура редакцій" },
+    { id: "punish3d",   file: "punishments_3d.html", label: "🎯 8. 3D Покарання" },
   ];
 
   function getCurrentFileName() {
@@ -248,22 +250,23 @@
       .agy-nav-modules {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         overflow-x: auto;
+        flex-shrink: 0;
       }
       .agy-mod-link {
         text-decoration: none;
         color: #cbd5e1;
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 600;
-        padding: 6px 11px;
+        padding: 5px 9px;
         border-radius: 7px;
         background: rgba(30, 41, 59, 0.75);
         border: 1px solid rgba(148, 163, 184, 0.24);
         transition: all 0.14s;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
         white-space: nowrap;
         cursor: pointer;
       }
@@ -281,10 +284,17 @@
       .agy-context-right {
         display: flex;
         align-items: center;
-        gap: 10px;
-        font-size: 11.5px;
+        gap: 8px;
+        font-size: 11px;
         color: #e2e8f0;
         white-space: nowrap;
+        min-width: 0;
+        overflow: hidden;
+      }
+      #kzosn-global-context-info {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
       }
       .agy-share-btn {
         background: rgba(56, 189, 248, 0.16);

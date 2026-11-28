@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Покарання та Звільнення (КЗОСН ↑ / Показник ↓) + 2D Теплова карта | КЗОСН</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050811;
+      --panel: rgba(13, 20, 38, 0.9);
+      --border: rgba(148, 163, 184, 0.2);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(8, 13, 25, 0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 8px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+    }
+    .cg {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+    .cg label { font-weight: 600; white-space: nowrap; }
+    select, input[type="text"], button {
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 9px;
+      font: 500 12px 'Inter', sans-serif;
+      transition: border-color .14s, background .14s;
+    }
+    select:hover, select:focus, input:focus { border-color: var(--accent); outline: none; }
+    button { cursor: pointer; font-weight: 600; }
+    button:hover { border-color: var(--accent); background: rgba(56, 189, 248, 0.16); color: #fff; }
+    button.active { background: linear-gradient(135deg, #0284c7, #6366f1); border-color: #7dd3fc; color: #fff; }
+    #metric-select { max-width: 290px; font-weight: 600; color: #fde68a; }
+
+    /* 3D Stage */
+    .stage-wrap {
+      position: relative;
+      width: 100%;
+      height: 62vh;
+      min-height: 460px;
+      background: radial-gradient(circle at 50% 40%, #0d162c 0%, #050811 75%);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.28);
+      overflow: hidden;
+    }
+    #canvas-container { width: 100%; height: 100%; }
+
+    /* Floating HUD */
+    .hud {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      max-width: 410px;
+      background: rgba(9, 14, 28, 0.86);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 12px;
+      padding: 10px 13px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hud-title {
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 4px;
+    }
+    .hud-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .hud-note { font-size: 11px; color: var(--muted); line-height: 1.38; margin-bottom: 7px; }
+    .hud-warn {
+      font-size: 11px;
+      color: #fde047;
+      background: rgba(234, 179, 8, 0.14);
+      border: 1px solid rgba(234, 179, 8, 0.35);
+      border-radius: 6px;
+      padding: 4px 8px;
+      margin-bottom: 7px;
+      display: none;
+    }
+    .hud-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .hk {
+      background: rgba(30, 41, 59, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 7px;
+      padding: 5px 7px;
+    }
+    .hk .l { font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    .hk .v { font-size: 14px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .hud-sec {
+      margin-top: 7px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      font-size: 11.5px;
+      color: #cbd5e1;
+      line-height: 1.35;
+    }
+
+    /* Legend top-right */
+    .legend-box {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: rgba(9, 14, 28, 0.84);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 10px;
+      padding: 8px 11px;
+      font-size: 11px;
+      color: var(--muted);
+      pointer-events: none;
+      z-index: 10;
+      line-height: 1.5;
+    }
+    .legend-box b { color: var(--text); }
+
+    /* Section quick pills along bottom of 3D stage */
+    .sec-pills {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: calc(100% - 24px);
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      background: rgba(9, 14, 28, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 999px;
+      padding: 4px 8px;
+      z-index: 15;
+    }
+    .pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #cbd5e1;
+      background: transparent;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .pill:hover { background: rgba(56, 189, 248, 0.18); color: #fff; }
+    .pill.active { background: #0284c7; color: #fff; border-color: #7dd3fc; }
+
+    /* Tooltip */
+    #tooltip {
+      position: fixed;
+      display: none;
+      pointer-events: none;
+      z-index: 9999;
+      max-width: 340px;
+      background: rgba(7, 11, 22, 0.96);
+      border: 1px solid rgba(56, 189, 248, 0.55);
+      border-radius: 10px;
+      padding: 9px 11px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.7);
+      font-size: 11.5px;
+      line-height: 1.45;
+    }
+    .tt-head { font-size: 13px; font-weight: 800; color: #7dd3fc; margin-bottom: 2px; }
+    .tt-sub { font-size: 11px; color: #cbd5e1; margin-bottom: 6px; }
+    .tt-row { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid rgba(148,163,184,0.12); padding-top: 3px; margin-top: 3px; }
+    .tt-row b { font-variant-numeric: tabular-nums; }
+
+    /* 2D Heatmap section below 3D */
+    .heatmap-section {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 16px 20px 36px;
+    }
+    .hm-card {
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    .hm-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .hm-head h2 { font-size: 15px; font-weight: 700; color: #f8fafc; }
+    .hm-note { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+    .hm-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+    .seg button { border: 0; border-radius: 0; padding: 5px 10px; font-size: 11.5px; background: rgba(15, 23, 42, 0.9); color: var(--muted); }
+    .seg button.active { background: linear-gradient(135deg, #0284c7, #6366f1); color: #fff; }
+    .btn-csv { background: rgba(56, 189, 248, 0.14); border-color: rgba(56, 189, 248, 0.45); color: #7dd3fc; font-size: 11.5px; }
+
+    .tbl-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    table.hm-tbl {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 11.5px;
+      font-variant-numeric: tabular-nums;
+    }
+    table.hm-tbl th, table.hm-tbl td {
+      padding: 6px 8px;
+      text-align: right;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      white-space: nowrap;
+    }
+    table.hm-tbl th {
+      background: #0b1324;
+      color: var(--muted);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    table.hm-tbl th.yr-active {
+      background: rgba(56, 189, 248, 0.25);
+      color: #fff;
+      border-bottom: 2px solid #38bdf8;
+    }
+    table.hm-tbl th:first-child, table.hm-tbl td:first-child {
+      text-align: left;
+      position: sticky;
+      left: 0;
+      background: #0b1324;
+      z-index: 2;
+      max-width: 310px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+    table.hm-tbl tbody tr:hover td:first-child { background: #13213e; color: #fff; }
+    table.hm-tbl tbody tr.sec-locked td:first-child { background: rgba(2, 132, 199, 0.45); color: #fff; font-weight: 700; }
+    table.hm-tbl tbody tr.sec-locked td { box-shadow: inset 0 1px 0 rgba(56,189,248,0.5), inset 0 -1px 0 rgba(56,189,248,0.5); }
+    table.hm-tbl td.cell-val { cursor: pointer; transition: filter .12s; }
+    table.hm-tbl td.cell-val:hover { filter: brightness(1.25); outline: 1px solid #fff; }
+    table.hm-tbl td.yr-col-active { box-shadow: inset 1px 0 0 rgba(56,189,248,0.45), inset -1px 0 0 rgba(56,189,248,0.45); }
+    table.hm-tbl tr.total-row td {
+      font-weight: 800;
+      color: #fff;
+      background: #0f1b33;
+      border-top: 2px solid rgba(148, 163, 184, 0.35);
+    }
+    table.hm-tbl tr.total-row td:first-child { background: #0f1b33; }
+    .nd { color: #475569; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="cg">
+      <label for="year-select">Рік:</label>
+      <select id="year-select"></select>
+      <button id="play-btn" title="Анімація змін 2013–2025">▶</button>
+    </div>
+    <div class="cg">
+      <label for="metric-select">Вниз (↓):</label>
+      <select id="metric-select"></select>
+    </div>
+    <div class="cg">
+      <label for="scale-select">Шкала ↓:</label>
+      <select id="scale-select">
+        <option value="log">Логарифмічна</option>
+        <option value="linear">Лінійна (% макс.)</option>
+        <option value="rank">Рангова (0–100)</option>
+      </select>
+    </div>
+    <div class="cg">
+      <label for="sort-select">Порядок:</label>
+      <select id="sort-select">
+        <option value="metric_desc">За спаданням показника ↓</option>
+        <option value="kzosn_desc">За спаданням КЗОСН ↑</option>
+        <option value="art_seq">За номером статті</option>
+      </select>
+    </div>
+    <div class="cg">
+      <label for="filter-select">Фільтр:</label>
+      <select id="filter-select">
+        <option value="all">Усі норми КК</option>
+        <option value="nonzero">Тільки показник &gt; 0</option>
+      </select>
+    </div>
+    <div class="cg">
+      <button id="flip-btn" title="Перегорнути модель відносно горизонтальної площини">⇅ Верх ↔ Низ</button>
+      <input type="text" id="search-input" placeholder="Стаття (185, 115...)" style="width:125px;" />
+      <button id="reset-btn">Скинути</button>
+    </div>
+  </div>
+
+  <div class="stage-wrap">
+    <div id="canvas-container"></div>
+
+    <div class="hud">
+      <div class="hud-title">
+        <span class="hud-dot" id="hud-dot"></span>
+        <span id="hud-metric-name">—</span>
+      </div>
+      <div class="hud-note" id="hud-metric-note"></div>
+      <div class="hud-warn" id="hud-warn"></div>
+      <div class="hud-kpis">
+        <div class="hk"><div class="l">Україна (осіб)</div><div class="v" id="hk-total">—</div></div>
+        <div class="hk"><div class="l">% від засуджених</div><div class="v" id="hk-share">—</div></div>
+        <div class="hk"><div class="l">Активних норм</div><div class="v" id="hk-norms">—</div></div>
+      </div>
+      <div class="hud-sec" id="hud-sec">Наведіть на стовпчик або оберіть розділ у панелі нижче чи в тепловій карті.</div>
+    </div>
+
+    <div class="legend-box" id="legend-box">
+      <div><b>↑ Вгору:</b> I<sub>КЗОСН</sub> (0–100) — законодавча суворість санкції</div>
+      <div><b>↓ Вниз:</b> <span id="legend-down-lbl">обраний показник ДСА (Форма № 6)</span></div>
+      <div style="font-size:10px; color:#64748b; margin-top:2px;">ЛКМ — обертання · ПКМ — панорама · Коліщатко — масштаб</div>
+    </div>
+
+    <div class="sec-pills" id="sec-pills"></div>
+  </div>
+
+  <div id="tooltip"></div>
+
+  <section class="heatmap-section">
+    <div class="hm-card">
+      <div class="hm-head">
+        <div>
+          <h2 id="hm-title">2D Теплова карта розподілу показника по розділах КК (2013–2025)</h2>
+          <div class="hm-note" id="hm-note">
+            Офіційні підсумки розділів (Форма № 6 ДСА). Клік на клітинку перемикає 3D-модель на відповідний рік і фіксує розділ; клік на рік або назву розділу змінює зріз.
+          </div>
+        </div>
+        <div class="hm-actions">
+          <div class="seg" id="hm-mode-seg">
+            <button type="button" data-mode="abs" class="active">Осіб</button>
+            <button type="button" data-mode="pct_sec">% у розділі</button>
+            <button type="button" data-mode="pct_ua">% від України</button>
+          </div>
+          <button type="button" class="btn-csv" id="hm-csv-btn">⬇ CSV</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="hm-tbl" id="hm-tbl"></table>
+      </div>
+    </div>
+  </section>
+
+  <script src="data.js"></script>
+  <script src="punishments_data.js"></script>
+  <script src="app_shell.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    (function () {
+      const DATA = window.KZOCN_DATA;
+      const PDATA = window.KZOSN_PUN_DATA;
+      if (!DATA || !PDATA) {
+        alert("Помилка завантаження data.js або punishments_data.js!");
+        return;
+      }
+
+      const YEARS = PDATA.years; // ["2013".."2025"]
+      const SECTIONS = DATA.sections;
+      const METRICS = PDATA.metrics;
+      const METRIC_BY_ID = Object.fromEntries(METRICS.map((m) => [m.id, m]));
+      const fmt = (n) => (n === null || n === undefined ? "н/д" : Number(n).toLocaleString("uk-UA"));
+
+      const initShell = window.KZOSN_SHELL ? window.KZOSN_SHELL.getState() : {};
+      let currentYear = YEARS.includes(initShell.ed) ? initShell.ed : "2025";
+      let currentMetric = "RELEASED";
+      let scaleMode = "log";
+      let sortMode = "metric_desc";
+      let filterMode = "all";
+      let hmMode = "abs";
+      let lockedSection = initShell.sec && initShell.sec !== "ALL" ? initShell.sec : null;
+      let hoveredSection = null;
+      let hoveredNormKey = null;
+      let isFlipped = false;
+      let currentFlipY = 1.0;
+      let targetFlipY = 1.0;
+      let playTimer = null;
+
+      // DOM refs
+      const yearSel = document.getElementById("year-select");
+      const metricSel = document.getElementById("metric-select");
+      const scaleSel = document.getElementById("scale-select");
+      const sortSel = document.getElementById("sort-select");
+      const filterSel = document.getElementById("filter-select");
+      const flipBtn = document.getElementById("flip-btn");
+      const playBtn = document.getElementById("play-btn");
+      const searchInput = document.getElementById("search-input");
+      const resetBtn = document.getElementById("reset-btn");
+      const tooltip = document.getElementById("tooltip");
+      const secPillsEl = document.getElementById("sec-pills");
+
+      // Populate controls
+      yearSel.innerHTML = YEARS.map((y) => `<option value="${y}">${y}</option>`).join("");
+      yearSel.value = currentYear;
+
+      const groups = [
+        { id: "summary", label: "— Загальні підсумки розподілу —" },
+        { id: "release", label: "— Звільнення від покарання (за видами) —" },
+        { id: "main",    label: "— Основні види покарань (ст. 51 КК) —" },
+      ];
+      metricSel.innerHTML = groups.map((g) => {
+        const opts = METRICS.filter((m) => m.group === g.id)
+          .map((m) => `<option value="${m.id}">${m.name}</option>`).join("");
+        return `<optgroup label="${g.label}">${opts}</optgroup>`;
+      }).join("");
+      metricSel.value = currentMetric;
+
+      // Build section pills
+      function buildPills() {
+        let html = `<button type="button" class="pill ${!lockedSection ? "active" : ""}" data-sec="ALL">Усі 20</button>`;
+        SECTIONS.forEach((s) => {
+          html += `<button type="button" class="pill ${lockedSection === s.id ? "active" : ""}" data-sec="${s.id}" title="${s.title}">${s.id}</button>`;
+        });
+        secPillsEl.innerHTML = html;
+      }
+      secPillsEl.addEventListener("click", (e) => {
+        const btn = e.target.closest(".pill");
+        if (!btn) return;
+        const sec = btn.dataset.sec;
+        lockedSection = sec === "ALL" ? null : (lockedSection === sec ? null : sec);
+        if (window.KZOSN_SHELL) window.KZOSN_SHELL.setState({ sec: lockedSection || "ALL" });
+        updatePillsUI();
+        applyHighlightState();
+        renderHeatmap();
+      });
+      function updatePillsUI() {
+        secPillsEl.querySelectorAll(".pill").forEach((b) => {
+          const s = b.dataset.sec;
+          b.classList.toggle("active", s === "ALL" ? !lockedSection : lockedSection === s);
+        });
+      }
+
+      // Three.js Setup
+      const container = document.getElementById("canvas-container");
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(44, container.clientWidth / container.clientHeight, 1, 2200);
+      camera.position.set(0, 95, 310);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.target.set(0, 0, -55);
+      controls.minDistance = 45;
+      controls.maxDistance = 720;
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.72));
+      const dir1 = new THREE.DirectionalLight(0xe0f2fe, 0.85);
+      dir1.position.set(140, 220, 160);
+      scene.add(dir1);
+      const dir2 = new THREE.DirectionalLight(0xf5d0fe, 0.55);
+      dir2.position.set(-140, -180, -120);
+      scene.add(dir2);
+
+      // Base reference plane (Y = 0)
+      const gridHelper = new THREE.GridHelper(320, 32, 0x38bdf8, 0x1e293b);
+      gridHelper.position.set(0, 0, -60);
+      gridHelper.material.transparent = true;
+      gridHelper.material.opacity = 0.28;
+      scene.add(gridHelper);
+
+      const sectionsRoot = new THREE.Group();
+      scene.add(sectionsRoot);
+      const labelsRoot = new THREE.Group();
+      scene.add(labelsRoot);
+
+      function makeTextSprite(text, color = "#e2e8f0") {
+        const cvs = document.createElement("canvas");
+        cvs.width = 256; cvs.height = 64;
+        const ctx = cvs.getContext("2d");
+        ctx.font = "bold 30px Inter, Segoe UI, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = color;
+        ctx.fillText(text, 128, 34);
+        const tex = new THREE.CanvasTexture(cvs);
+        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+        const sp = new THREE.Sprite(mat);
+        sp.scale.set(22, 5.5, 1);
+        return sp;
+      }
+
+      function kzosnColor(val) {
+        const t = Math.max(0, Math.min(1, val / 100));
+        const c = new THREE.Color();
+        if (t < 0.33) c.setRGB(0.18 + t * 0.4, 0.65 + t * 0.5, 0.85 - t * 0.6);
+        else if (t < 0.66) c.setRGB(0.32 + (t - 0.33) * 1.9, 0.82 - (t - 0.33) * 0.4, 0.45 - (t - 0.33) * 1.1);
+        else c.setRGB(0.96, 0.68 - (t - 0.66) * 1.6, 0.14 + (t - 0.66) * 0.3);
+        return c;
+      }
+
+      function metricColor(baseHex, normT) {
+        const c = new THREE.Color(baseHex);
+        const hsl = {};
+        c.getHSL(hsl);
+        c.setHSL(hsl.h, Math.min(1, hsl.s * (0.75 + 0.3 * normT)), Math.min(0.75, 0.34 + 0.36 * normT));
+        return c;
+      }
+
+      let sectionObjects = {};
+      let interactiveNodes = [];
+      const MAX_H_UP = 62;
+      const MAX_H_DOWN = 62;
+
+      function isMetricUnavailable(metricId, yr) {
+        const meta = METRIC_BY_ID[metricId];
+        return !!(meta && meta.availableFrom && Number(yr) < meta.availableFrom);
+      }
+
+      function getNormMetricVal(yr, normKey, metricId) {
+        if (isMetricUnavailable(metricId, yr)) return null;
+        const map = PDATA.byYear[yr];
+        if (!map || !map[normKey]) return 0;
+        return map[normKey][metricId] || 0;
+      }
+
+      function buildScene() {
+        while (sectionsRoot.children.length) sectionsRoot.remove(sectionsRoot.children[0]);
+        while (labelsRoot.children.length) labelsRoot.remove(labelsRoot.children[0]);
+        sectionObjects = {};
+        interactiveNodes = [];
+
+        const recs = DATA.byEdition[currentYear] || [];
+        const meta = METRIC_BY_ID[currentMetric];
+        const unavailable = isMetricUnavailable(currentMetric, currentYear);
+
+        // Compute max & rank map for current metric across the year
+        let maxVal = 0;
+        const nonzeroVals = [];
+        const valByKey = {};
+        recs.forEach((r) => {
+          const nk = `${r[1]}|${r[3]}`;
+          const v = getNormMetricVal(currentYear, nk, currentMetric);
+          valByKey[nk] = v;
+          if (v && v > 0) {
+            if (v > maxVal) maxVal = v;
+            nonzeroVals.push(v);
+          }
+        });
+        const uniqueSorted = [...new Set(nonzeroVals)].sort((a, b) => b - a);
+        const rankMap = new Map();
+        uniqueSorted.forEach((v, idx) => rankMap.set(v, idx + 1));
+        const mMax = uniqueSorted.length;
+
+        function downHeight(v) {
+          if (!v || v <= 0 || unavailable) return 0;
+          if (scaleMode === "linear") {
+            return maxVal > 0 ? Math.max(1.2, (v / maxVal) * MAX_H_DOWN) : 0;
+          }
+          if (scaleMode === "rank") {
+            const rk = rankMap.get(v) || mMax;
+            const idx100 = mMax > 1 ? 100 * (1 - (rk - 1) / (mMax - 1)) : 100;
+            return Math.max(1.2, (idx100 / 100) * MAX_H_DOWN);
+          }
+          // log
+          return maxVal > 0 ? Math.max(1.4, (Math.log1p(v) / Math.log1p(maxVal)) * MAX_H_DOWN) : 0;
+        }
+
+        // Group recs by section
+        const bySec = {};
+        SECTIONS.forEach((s) => (bySec[s.id] = []));
+        recs.forEach((r) => { if (bySec[r[0]]) bySec[r[0]].push(r); });
+
+        const secSpacing = 14.5;
+        const startX = -((SECTIONS.length - 1) * secSpacing) / 2;
+        const barW = 2.6;
+        const barD = 2.1;
+        const zStep = 2.65;
+
+        const geoUnit = new THREE.BoxGeometry(1, 1, 1);
+
+        SECTIONS.forEach((sec, sIdx) => {
+          const secId = sec.id;
+          const items = bySec[secId].slice();
+          if (sortMode === "metric_desc") {
+            items.sort((a, b) => {
+              const va = valByKey[`${a[1]}|${a[3]}`] || 0;
+              const vb = valByKey[`${b[1]}|${b[3]}`] || 0;
+              if (vb !== va) return vb - va;
+              return b[5] - a[5];
+            });
+          } else if (sortMode === "kzosn_desc") {
+            items.sort((a, b) => b[5] - a[5]);
+          } else {
+            items.sort((a, b) => (a[2] - b[2]) || (a[3] - b[3]));
+          }
+
+          const secGroup = new THREE.Group();
+          const cx = startX + sIdx * secSpacing;
+          const upMeshes = [];
+          const downMeshes = [];
+          let activeInSec = 0;
+
+          items.forEach((item, idx) => {
+            const nk = `${item[1]}|${item[3]}`;
+            const mVal = valByKey[nk];
+            const hasMetric = !unavailable && mVal > 0;
+            if (hasMetric) activeInSec++;
+            const passesFilter = filterMode === "all" || hasMetric;
+
+            const z = -idx * zStep;
+            const hUp = Math.max(0.8, (item[5] / 100) * MAX_H_UP);
+            const colUp = kzosnColor(item[5]);
+
+            const upMat = new THREE.MeshStandardMaterial({
+              color: colUp,
+              roughness: 0.35,
+              metalness: 0.14,
+              side: THREE.DoubleSide,
+              transparent: true,
+              opacity: passesFilter ? 0.92 : 0.08,
+            });
+            const upMesh = new THREE.Mesh(geoUnit, upMat);
+            upMesh.scale.set(barW, hUp, barD);
+            upMesh.position.set(cx, hUp / 2, z);
+            upMesh.userData = { secId, normKey: nk, item, mVal, passesFilter, dir: "up", baseColor: colUp.clone() };
+            secGroup.add(upMesh);
+            upMeshes.push(upMesh);
+            interactiveNodes.push(upMesh);
+
+            if (hasMetric) {
+              const hDown = downHeight(mVal);
+              const tNorm = Math.min(1, hDown / MAX_H_DOWN);
+              const colDn = metricColor(meta.color, tNorm);
+              const dnMat = new THREE.MeshStandardMaterial({
+                color: colDn,
+                emissive: colDn,
+                emissiveIntensity: 0.18,
+                roughness: 0.25,
+                metalness: 0.2,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.96,
+              });
+              const dnMesh = new THREE.Mesh(geoUnit, dnMat);
+              dnMesh.scale.set(barW * 1.05, hDown, barD * 1.05);
+              dnMesh.position.set(cx, -hDown / 2, z);
+              dnMesh.userData = { secId, normKey: nk, item, mVal, passesFilter: true, dir: "down", baseColor: colDn.clone() };
+              secGroup.add(dnMesh);
+              downMeshes.push(dnMesh);
+              interactiveNodes.push(dnMesh);
+            }
+          });
+
+          sectionsRoot.add(secGroup);
+
+          const sp = makeTextSprite(`Р.${secId}`, "#cbd5e1");
+          sp.position.set(cx, 3, 14);
+          labelsRoot.add(sp);
+
+          sectionObjects[secId] = { secId, title: sec.title, upMeshes, downMeshes, totalNorms: items.length, activeInSec };
+        });
+
+        updateHUD();
+        applyHighlightState();
+      }
+
+      function updateHUD() {
+        const meta = METRIC_BY_ID[currentMetric];
+        const unavailable = isMetricUnavailable(currentMetric, currentYear);
+        document.getElementById("hud-dot").style.background = meta.color;
+        document.getElementById("hud-metric-name").textContent = `${meta.name} · ${currentYear}`;
+        document.getElementById("hud-metric-note").textContent = meta.note || "";
+        document.getElementById("legend-down-lbl").textContent = `${meta.short} (${currentYear})`;
+
+        const warnEl = document.getElementById("hud-warn");
+        if (unavailable) {
+          warnEl.style.display = "block";
+          warnEl.textContent = `У формі № 6 за ${currentYear} рік окрема колонка PROBAN відсутня (NULL, не 0). Оберіть 2025 рік для перегляду пробаційного нагляду.`;
+        } else {
+          warnEl.style.display = "none";
+        }
+
+        const ov = PDATA.overall[currentYear] || {};
+        const tot = unavailable ? null : (ov[currentMetric] || 0);
+        const conv = ov.CONVIC || 0;
+        const activeNorms = unavailable ? 0 : Object.values(PDATA.byYear[currentYear] || {}).filter((d) => (d[currentMetric] || 0) > 0).length;
+
+        document.getElementById("hk-total").textContent = unavailable ? "н/д" : fmt(tot);
+        document.getElementById("hk-total").style.color = meta.color;
+        document.getElementById("hk-share").textContent = unavailable || !conv ? "н/д" : ((100 * tot) / conv).toFixed(1) + "%";
+        document.getElementById("hk-norms").textContent = unavailable ? "н/д" : fmt(activeNorms);
+
+        updateSectionHUD();
+      }
+
+      function updateSectionHUD() {
+        const activeSec = lockedSection || hoveredSection;
+        const el = document.getElementById("hud-sec");
+        if (!activeSec || !sectionObjects[activeSec]) {
+          el.innerHTML = "Наведіть на стовпчик або оберіть розділ (у панелі знизу чи в 2D тепловій карті).";
+          return;
+        }
+        const so = sectionObjects[activeSec];
+        const ch = (PDATA.chapters[currentYear] && PDATA.chapters[currentYear][activeSec]) || {};
+        const unavailable = isMetricUnavailable(currentMetric, currentYear);
+        const val = unavailable ? null : (ch[currentMetric] || 0);
+        const chConv = ch.CONVIC || 0;
+        const shareStr = !unavailable && chConv ? ` (${((100 * val) / chConv).toFixed(1)}% від засуджених у розділі)` : "";
+        el.innerHTML = `<b style="color:#7dd3fc;">${so.title}</b><br/>` +
+          `Показник у розділі: <b style="color:${METRIC_BY_ID[currentMetric].color}">${unavailable ? "н/д" : fmt(val) + " ос."}</b>${shareStr} · ` +
+          `Норм із показником &gt; 0: <b>${so.activeInSec}</b> із ${so.totalNorms}`;
+      }
+
+      function applyHighlightState() {
+        const activeSec = lockedSection || hoveredSection;
+        Object.values(sectionObjects).forEach((so) => {
+          const isSecActive = !activeSec || so.secId === activeSec;
+          so.upMeshes.forEach((m) => {
+            const isHover = hoveredNormKey && m.userData.normKey === hoveredNormKey;
+            if (!m.userData.passesFilter) {
+              m.material.opacity = 0.05;
+            } else if (isHover) {
+              m.material.opacity = 1.0;
+              m.material.emissive.setHex(0x38bdf8);
+              m.material.emissiveIntensity = 0.45;
+            } else {
+              m.material.opacity = isSecActive ? 0.9 : 0.14;
+              m.material.emissive.setHex(0x000000);
+              m.material.emissiveIntensity = 0;
+            }
+          });
+          so.downMeshes.forEach((m) => {
+            const isHover = hoveredNormKey && m.userData.normKey === hoveredNormKey;
+            if (isHover) {
+              m.material.opacity = 1.0;
+              m.material.emissiveIntensity = 0.6;
+            } else {
+              m.material.opacity = isSecActive ? 0.96 : 0.14;
+              m.material.emissiveIntensity = isSecActive ? 0.2 : 0.05;
+            }
+          });
+        });
+        updateSectionHUD();
+      }
+
+      // Raycasting
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+
+      renderer.domElement.addEventListener("pointermove", (e) => {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const targets = interactiveNodes.filter((m) => {
+          if (!m.userData.passesFilter) return false;
+          if (lockedSection && m.userData.secId !== lockedSection) return false;
+          return true;
+        });
+        const hits = raycaster.intersectObjects(targets, false);
+        if (hits.length > 0) {
+          const ud = hits[0].object.userData;
+          const item = ud.item;
+          const nk = ud.normKey;
+          if (hoveredNormKey !== nk || hoveredSection !== ud.secId) {
+            hoveredNormKey = nk;
+            hoveredSection = ud.secId;
+            applyHighlightState();
+          }
+          const title = DATA.titles[item[9]] || "";
+          const meta = METRIC_BY_ID[currentMetric];
+          const unavailable = isMetricUnavailable(currentMetric, currentYear);
+          const normPun = (PDATA.byYear[currentYear] && PDATA.byYear[currentYear][nk]) || {};
+          const mVal = unavailable ? null : (normPun[currentMetric] || 0);
+          const conv = normPun.CONVIC || 0;
+          const rel = normPun.RELEASED || 0;
+          const pun = normPun.PUNISHED || 0;
+          const ovTot = (PDATA.overall[currentYear] && PDATA.overall[currentYear][currentMetric]) || 0;
+          const pctUa = !unavailable && ovTot > 0 ? ((100 * mVal) / ovTot).toFixed(2) + "%" : "—";
+          const pctNorm = !unavailable && conv > 0 ? ((100 * mVal) / conv).toFixed(1) + "%" : "—";
+
+          tooltip.innerHTML = `
+            <div class="tt-head">${item[4]} <span style="color:#94a3b8;font-weight:500;">(Розділ ${item[0]})</span></div>
+            <div class="tt-sub">${title.slice(0, 110)}${title.length > 110 ? "…" : ""}</div>
+            <div class="tt-row"><span>I<sub>КЗОСН</sub> (↑):</span><b style="color:#4ade80;">${item[5].toFixed(2)} (#${item[6]}/${item[7]})</b></div>
+            <div class="tt-row"><span>${meta.short} (↓):</span><b style="color:${meta.color};">${unavailable ? "н/д" : fmt(mVal) + " ос."}</b></div>
+            <div class="tt-row"><span>Частка (у нормі / в Україні):</span><b>${pctNorm} / ${pctUa}</b></div>
+            <div class="tt-row" style="color:#94a3b8;font-size:10.5px;"><span>Усього засуджено · Звільнено · Осн. покарань:</span><b>${fmt(conv)} · ${fmt(rel)} · ${fmt(pun)}</b></div>
+          `;
+          tooltip.style.display = "block";
+          tooltip.style.left = Math.min(window.innerWidth - 355, e.clientX + 14) + "px";
+          tooltip.style.top = Math.min(window.innerHeight - 170, e.clientY + 14) + "px";
+          renderer.domElement.style.cursor = "pointer";
+        } else {
+          tooltip.style.display = "none";
+          renderer.domElement.style.cursor = "grab";
+          if (hoveredNormKey !== null || hoveredSection !== null) {
+            hoveredNormKey = null;
+            hoveredSection = null;
+            applyHighlightState();
+          }
+        }
+      });
+
+      renderer.domElement.addEventListener("pointerleave", () => {
+        tooltip.style.display = "none";
+        if (hoveredNormKey !== null || hoveredSection !== null) {
+          hoveredNormKey = null;
+          hoveredSection = null;
+          applyHighlightState();
+        }
+      });
+
+      renderer.domElement.addEventListener("click", () => {
+        if (hoveredNormKey && hoveredSection) {
+          if (window.KZOSN_SHELL) {
+            window.KZOSN_SHELL.setState({ ed: currentYear, norm: hoveredNormKey, sec: hoveredSection });
+          }
+        }
+      });
+
+      // 2D Heatmap rendering
+      let lastCsvRows = [];
+      function hexToRgba(hex, alpha) {
+        const c = new THREE.Color(hex);
+        return `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${alpha.toFixed(3)})`;
+      }
+
+      function renderHeatmap() {
+        const meta = METRIC_BY_ID[currentMetric];
+        document.getElementById("hm-title").textContent =
+          `2D Теплова карта: ${meta.name} — розподіл по розділах КК (2013–2025)`;
+
+        // Build matrix [secIdx][yrIdx]
+        const matrix = SECTIONS.map((s) =>
+          YEARS.map((yr) => {
+            if (isMetricUnavailable(currentMetric, yr)) return null;
+            const ch = (PDATA.chapters[yr] && PDATA.chapters[yr][s.id]) || {};
+            const ov = PDATA.overall[yr] || {};
+            const raw = ch[currentMetric] || 0;
+            if (hmMode === "abs") return raw;
+            if (hmMode === "pct_sec") {
+              const chConv = ch.CONVIC || 0;
+              return chConv > 0 ? (100 * raw) / chConv : 0;
+            }
+            const ovVal = ov[currentMetric] || 0;
+            return ovVal > 0 ? (100 * raw) / ovVal : 0;
+          })
+        );
+
+        const flatPos = matrix.flat().filter((v) => v !== null && v > 0);
+        const maxVal = flatPos.length ? Math.max(...flatPos) : 1;
+
+        let html = `<thead><tr><th>Розділ КК</th>` +
+          YEARS.map((yr) => `<th class="${yr === currentYear ? "yr-active" : ""}" data-yr="${yr}">${yr}</th>`).join("") +
+          `</tr></thead><tbody>`;
+
+        lastCsvRows = [["Розділ", ...YEARS]];
+
+        SECTIONS.forEach((s, si) => {
+          const shortTitle = s.title.replace(/^Розділ [IVXL]+\.\s*/, "");
+          const isLocked = lockedSection === s.id;
+          html += `<tr class="${isLocked ? "sec-locked" : ""}" data-sec="${s.id}">` +
+            `<td title="${s.title}"><b>${s.id}</b> ${shortTitle}</td>`;
+          const csvRow = [s.id];
+
+          YEARS.forEach((yr, yi) => {
+            const v = matrix[si][yi];
+            const yrCls = yr === currentYear ? "yr-col-active" : "";
+            if (v === null) {
+              html += `<td class="nd ${yrCls}" data-sec="${s.id}" data-yr="${yr}">н/д</td>`;
+              csvRow.push("");
+            } else if (v === 0) {
+              html += `<td class="cell-val ${yrCls}" data-sec="${s.id}" data-yr="${yr}" style="color:#475569;">·</td>`;
+              csvRow.push("0");
+            } else {
+              // sqrt scaling for color intensity so smaller sections remain legible alongside Sec VI / XIII
+              const t = Math.pow(v / maxVal, 0.55);
+              const bg = hexToRgba(meta.color, 0.14 + 0.76 * t);
+              const fg = t > 0.62 ? "#06101f" : "#f8fafc";
+              const disp = hmMode === "abs" ? fmt(v) : v.toFixed(1) + "%";
+              const ch = (PDATA.chapters[yr] && PDATA.chapters[yr][s.id]) || {};
+              const raw = ch[currentMetric] || 0;
+              const chConv = ch.CONVIC || 0;
+              const tip = `Розділ ${s.id} (${yr}): ${fmt(raw)} ос. із ${fmt(chConv)} засуджених у розділі`;
+              html += `<td class="cell-val ${yrCls}" data-sec="${s.id}" data-yr="${yr}" title="${tip}" style="background:${bg};color:${fg};font-weight:${t > 0.45 ? 700 : 500};">${disp}</td>`;
+              csvRow.push(hmMode === "abs" ? String(v) : v.toFixed(2));
+            }
+          });
+          html += `</tr>`;
+          lastCsvRows.push(csvRow);
+        });
+
+        // Overall national total row (published overall_total)
+        html += `<tr class="total-row"><td>Усього по Україні (опубл. підсумок)</td>`;
+        const totCsv = ["Україна (опубл. підсумок)"];
+        YEARS.forEach((yr) => {
+          const yrCls = yr === currentYear ? "yr-col-active" : "";
+          if (isMetricUnavailable(currentMetric, yr)) {
+            html += `<td class="nd ${yrCls}">н/д</td>`;
+            totCsv.push("");
+          } else {
+            const ov = PDATA.overall[yr] || {};
+            const raw = ov[currentMetric] || 0;
+            const conv = ov.CONVIC || 0;
+            let disp = fmt(raw);
+            let csvV = String(raw);
+            if (hmMode === "pct_sec") {
+              const p = conv > 0 ? (100 * raw) / conv : 0;
+              disp = p.toFixed(1) + "%";
+              csvV = p.toFixed(2);
+            } else if (hmMode === "pct_ua") {
+              disp = raw > 0 ? "100%" : "0%";
+              csvV = raw > 0 ? "100" : "0";
+            }
+            html += `<td class="${yrCls}">${disp}</td>`;
+            totCsv.push(csvV);
+          }
+        });
+        html += `</tr></tbody>`;
+        lastCsvRows.push(totCsv);
+
+        document.getElementById("hm-tbl").innerHTML = html;
+      }
+
+      document.getElementById("hm-tbl").addEventListener("click", (e) => {
+        const th = e.target.closest("th[data-yr]");
+        if (th) {
+          setYear(th.dataset.yr, true);
+          return;
+        }
+        const td = e.target.closest("td[data-sec][data-yr]");
+        if (td) {
+          const sec = td.dataset.sec;
+          const yr = td.dataset.yr;
+          lockedSection = sec;
+          if (yr !== currentYear) {
+            currentYear = yr;
+            yearSel.value = yr;
+            buildScene();
+          } else {
+            applyHighlightState();
+          }
+          updatePillsUI();
+          renderHeatmap();
+          if (window.KZOSN_SHELL) window.KZOSN_SHELL.setState({ ed: currentYear, sec: lockedSection });
+          return;
+        }
+        const tr = e.target.closest("tr[data-sec]");
+        if (tr) {
+          const sec = tr.dataset.sec;
+          lockedSection = lockedSection === sec ? null : sec;
+          updatePillsUI();
+          applyHighlightState();
+          renderHeatmap();
+          if (window.KZOSN_SHELL) window.KZOSN_SHELL.setState({ sec: lockedSection || "ALL" });
+        }
+      });
+
+      document.querySelectorAll("#hm-mode-seg button").forEach((b) => {
+        b.addEventListener("click", () => {
+          hmMode = b.dataset.mode;
+          document.querySelectorAll("#hm-mode-seg button").forEach((x) => x.classList.toggle("active", x === b));
+          renderHeatmap();
+        });
+      });
+
+      document.getElementById("hm-csv-btn").addEventListener("click", () => {
+        const csv = "\uFEFF" + lastCsvRows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+        a.download = `heatmap_${currentMetric}_${hmMode}_2013_2025.csv`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      });
+
+      // Control event listeners
+      function setYear(yr, broadcast) {
+        if (!YEARS.includes(yr)) return;
+        currentYear = yr;
+        yearSel.value = yr;
+        if (broadcast && window.KZOSN_SHELL) window.KZOSN_SHELL.setState({ ed: yr });
+        buildScene();
+        renderHeatmap();
+      }
+
+      yearSel.addEventListener("change", () => setYear(yearSel.value, true));
+      metricSel.addEventListener("change", () => {
+        currentMetric = metricSel.value;
+        buildScene();
+        renderHeatmap();
+      });
+      scaleSel.addEventListener("change", () => { scaleMode = scaleSel.value; buildScene(); });
+      sortSel.addEventListener("change", () => { sortMode = sortSel.value; buildScene(); });
+      filterSel.addEventListener("change", () => { filterMode = filterSel.value; buildScene(); });
+
+      flipBtn.addEventListener("click", () => {
+        isFlipped = !isFlipped;
+        targetFlipY = isFlipped ? -1.0 : 1.0;
+        flipBtn.classList.toggle("active", isFlipped);
+      });
+
+      playBtn.addEventListener("click", () => {
+        if (playTimer) {
+          clearInterval(playTimer);
+          playTimer = null;
+          playBtn.textContent = "▶";
+          playBtn.classList.remove("active");
+        } else {
+          playBtn.textContent = "⏸";
+          playBtn.classList.add("active");
+          playTimer = setInterval(() => {
+            const idx = (YEARS.indexOf(currentYear) + 1) % YEARS.length;
+            setYear(YEARS[idx], false);
+          }, 1200);
+        }
+      });
+
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        const q = searchInput.value.trim();
+        if (!q) return;
+        const recs = DATA.byEdition[currentYear] || [];
+        const found = recs.find((r) => r[1] === q || r[4].toLowerCase().includes(q.toLowerCase()));
+        if (found) {
+          lockedSection = found[0];
+          hoveredNormKey = `${found[1]}|${found[3]}`;
+          updatePillsUI();
+          applyHighlightState();
+          renderHeatmap();
+        }
+      });
+
+      resetBtn.addEventListener("click", () => {
+        lockedSection = null;
+        hoveredNormKey = null;
+        searchInput.value = "";
+        camera.position.set(0, 95, 310);
+        controls.target.set(0, 0, -55);
+        updatePillsUI();
+        applyHighlightState();
+        renderHeatmap();
+        if (window.KZOSN_SHELL) window.KZOSN_SHELL.setState({ sec: "ALL" });
+      });
+
+      // Resize & animation loop
+      function onResize() {
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        if (w > 0 && h > 0) {
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        }
+      }
+      window.addEventListener("resize", onResize);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (Math.abs(currentFlipY - targetFlipY) > 0.002) {
+          currentFlipY += (targetFlipY - currentFlipY) * 0.14;
+          sectionsRoot.scale.y = currentFlipY;
+        }
+        controls.update();
+        renderer.render(scene, camera);
+      }
+
+      // Sync with app shell
+      if (window.KZOSN_SHELL) {
+        window.KZOSN_SHELL.onStateChange((st) => {
+          let dirty = false;
+          if (st.ed && YEARS.includes(st.ed) && st.ed !== currentYear) {
+            currentYear = st.ed;
+            yearSel.value = currentYear;
+            dirty = true;
+          }
+          const nextSec = st.sec && st.sec !== "ALL" ? st.sec : null;
+          if (nextSec !== lockedSection) {
+            lockedSection = nextSec;
+            updatePillsUI();
+            dirty = true;
+          }
+          if (dirty) {
+            buildScene();
+            renderHeatmap();
+          }
+        });
+      }
+
+      buildPills();
+      buildScene();
+      renderHeatmap();
+      animate();
+    })();
+  </script>
+</body>
+</html>
